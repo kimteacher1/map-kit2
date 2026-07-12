@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAP LAB - 맵봇 챗봇</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        
+        :root {
+            --primary: #5DADE2;
+            --bg: #B2C7D9;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Jua', sans-serif; margin: 0; background: var(--bg); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        .chat-header {
+            background: rgba(255,255,255,0.95); padding: 15px 20px; display: flex; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 10;
+        }
+        .btn-outline { background: white; border: 2px solid #E5E7E9; border-radius: 12px; padding: 8px 15px; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s;}
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-submit { background: var(--primary); color: white; border: none; border-radius: 12px; padding: 8px 15px; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; margin-left:10px;}
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(93, 173, 226, 0.4); }
+
+        .chat-header h2 { margin: 0; flex: 1; text-align: center; font-size: 1.5rem; color: #2C3E50; }
+
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        
+        .msg-wrap { display: flex; max-width: 80%; align-items: flex-end; position: relative; }
+        .msg-wrap.bot { align-self: flex-start; }
+        .msg-wrap.user { align-self: flex-end; flex-direction: row-reverse; }
+        
+        .bot-profile { width: 45px; height: 45px; background: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; margin-right: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); flex-shrink: 0;}
+        
+        .msg-bubble {
+            padding: 12px 18px; border-radius: 20px; font-size: 1.1rem; line-height: 1.5; word-break: break-all;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); font-family: sans-serif;
+        }
+        .msg-wrap.bot .msg-bubble { background: #FFFFFF; border-top-left-radius: 0; }
+        .msg-wrap.user .msg-bubble { background: #FEE500; border-top-right-radius: 0; }
+        .msg-wrap.loading .msg-bubble { background: #E8F8F5; color: #16A085; font-style: italic; }
+        
+        .btn-copy {
+            background: #E8F8F5; border: 1px solid #1ABC9C; color: #16A085; font-size: 0.85rem;
+            padding: 4px 8px; border-radius: 8px; cursor: pointer; margin-left: 10px; font-family: 'Jua', sans-serif;
+        }
+
+        .chat-input-area { background: white; padding: 15px; display: flex; gap: 10px; }
+        #chat-input { flex: 1; padding: 15px; border-radius: 20px; border: 2px solid #E5E7E9; font-size: 1.1rem; outline: none; font-family: sans-serif; }
+        #chat-input:focus { border-color: var(--primary); }
+        #chat-send { background: var(--primary); color: white; border: none; padding: 0 25px; border-radius: 20px; cursor: pointer; font-family: 'Jua', sans-serif; font-size: 1.2rem; }
+        #chat-send:disabled { background: #BDC3C7; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+    <div class="chat-header">
+        <button class="btn-outline" onclick="if(window.parent && window.parent.closeApp) window.parent.closeApp(); else history.back();">◀ 메뉴로</button>
+        <h2>🤖 맵봇 (Map-Bot)</h2>
+        <button class="btn-submit" onclick="submitChatLog()">기록 제출하기</button>
+    </div>
+    <div class="chat-messages" id="chat-box"></div>
+    <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="사회 공부 중 궁금한 것을 물어보세요!" onkeypress="if(event.key==='Enter') sendChat()">
+        <button id="chat-send" onclick="sendChat()">전송</button>
+    </div>
+
+    <script>
+        let chatHistory = [];
+        let userName = "학생";
+
+        window.onload = () => {
+            const ui = sessionStorage.getItem('userInfo');
+            if(ui) {
+                userName = JSON.parse(ui).name;
+            }
+            appendBotMsg(`안녕? ${userName}야. 만나서 반가워! 🤖<br>나는 너의 사회 탐험을 도울 <b>맵봇(Map-Bot)</b>이야.<br>사회 학습 중 어떤 것이 궁금해서 날 찾아왔니?`);
+        };
+
+        function appendUserMsg(txt) {
+            chatHistory.push({ role: 'user', text: txt });
+            const box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="msg-wrap user"><div class="msg-bubble">${txt}</div></div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function appendBotMsg(txt, isTemp = false) {
+            if(!isTemp) chatHistory.push({ role: 'bot', text: txt });
+            const box = document.getElementById('chat-box');
+            const cleanTxt = txt.replace(/\n/g, '<br>');
+            const idAttr = isTemp ? 'id="loading-msg"' : '';
+            const wrapClass = isTemp ? 'msg-wrap bot loading' : 'msg-wrap bot';
+            
+            box.innerHTML += `
+                <div class="${wrapClass}" ${idAttr}>
+                    <div class="bot-profile">🤖</div>
+                    <div class="msg-bubble">${cleanTxt}
+                        ${!isTemp ? '<button class="btn-copy" onclick="copyText(this)">복사</button>' : ''}
+                    </div>
+                </div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function copyText(btn) {
+            const text = btn.parentElement.innerText.replace('복사', '').trim();
+            navigator.clipboard.writeText(text).then(() => {
+                const orig = btn.innerText;
+                btn.innerText = "완료!";
+                setTimeout(() => btn.innerText = orig, 1500);
+            });
+        }
+
+        async function sendChat() {
+            const inp = document.getElementById('chat-input');
+            const btn = document.getElementById('chat-send');
+            const txt = inp.value.trim();
+            if(!txt) return;
+
+            appendUserMsg(txt);
+            inp.value = '';
+            
+            inp.disabled = true; btn.disabled = true;
+            appendBotMsg("맵봇이 생각하는 중입니다... 🤔", true);
+
+            try {
+                // Vercel Serverless Function 호출 (경로 주의: /api/chat)
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: txt })
+                });
+
+                document.getElementById('loading-msg').remove();
+
+                const data = await response.json();
+                if(data.candidates && data.candidates.length > 0) {
+                    appendBotMsg(data.candidates[0].content.parts[0].text);
+                } else {
+                    appendBotMsg("앗, 응답을 받아오는데 문제가 생겼어. 잠시 후 다시 시도해줘!");
+                }
+            } catch (err) {
+                if(document.getElementById('loading-msg')) document.getElementById('loading-msg').remove();
+                appendBotMsg("서버와 통신할 수 없어. Vercel 배포 URL로 접속했는지 확인해줘!");
+                console.error(err);
+            } finally {
+                inp.disabled = false; btn.disabled = false; inp.focus();
+            }
+        }
+
+        function submitChatLog() {
+            if(chatHistory.length <= 1) {
+                alert("전송할 대화 내용이 없습니다."); return;
+            }
+            const chatLogString = chatHistory.map(c => `[${c.role === 'user' ? '나' : '맵봇'}]\n${c.text}`).join('\n\n-------------------\n\n');
+            if(window.parent && window.parent.handleMapSave) {
+                window.parent.handleMapSave("", "맵봇 챗봇", chatLogString);
+            }
+        }
+    </script>
+</body>
+</html>

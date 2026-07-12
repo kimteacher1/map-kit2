@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&lt;MAP KIT&gt; 백지도 그리기</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        
+        :root {
+            --primary: #5DADE2;   
+            --primary-hover: #3498DB;
+            --bg: #FFF5F5;        
+            --panel: #FFFFFF;
+            --text: #4A4A4A;      
+            --border: #E8E8E8;
+            --radius-btn: 20px;   
+            --radius-box: 24px;   
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+        
+        body { font-family: 'Jua', sans-serif; margin: 0; padding: 0; background: var(--bg); display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: var(--text); }
+
+        header { background: var(--panel); padding: 15px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; z-index: 10; border-bottom-left-radius: var(--radius-box); border-bottom-right-radius: var(--radius-box); margin: 0 15px; gap: 15px; white-space: nowrap; }
+        .menu-group { display: flex; gap: 10px; flex: 1; align-items: center; white-space: nowrap; flex-wrap: nowrap; }
+        select { height: 45px; padding: 0 15px; border-radius: var(--radius-btn); border: 2px solid var(--border); font-size: 1.1rem; font-family: 'Jua', sans-serif; color: var(--text); outline: none; cursor: pointer; flex: 1; max-width: 200px; min-width: 120px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; background: #FDFDFD; transition: 0.2s; }
+        select:hover { border-color: var(--primary); }
+
+        .custom-mode-badge { display: none; background: #EBF5FB; color: var(--primary-hover); padding: 10px 20px; border-radius: var(--radius-btn); border: 2px dashed var(--primary); font-weight: bold; font-size: 1.1rem; }
+
+        .blank-btn { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #F0F3F4; color: #7F8C8D; border: 2px solid transparent; transition: 0.3s; font-family: 'Jua', sans-serif; white-space: nowrap; flex-shrink: 0; }
+        .blank-btn.active { background: #FFD2D2; color: #E74C3C; border-color: #FFB6B9; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2); }
+
+        .btn-help { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #FEF9E7; color: #D35400; border: 2px solid transparent; transition: 0.3s; font-family: 'Jua', sans-serif; white-space: nowrap; flex-shrink: 0; font-weight: bold; }
+        .btn-help:hover { background: #FDEBD0; }
+
+        .btn-back { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #E74C3C; color: white; border: 2px solid transparent; transition: 0.3s; font-family: 'Jua', sans-serif; white-space: nowrap; flex-shrink: 0; }
+        .btn-back:hover { background: #C0392B; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
+
+        .toggle-container { display: flex; background: #F0F3F4; border-radius: 30px; overflow: hidden; padding: 4px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); flex-shrink: 0;}
+        .toggle-btn { padding: 10px 18px; font-size: 1.05rem; cursor: pointer; color: #95A5A6; transition: 0.3s; border-radius: 26px; white-space: nowrap; }
+        .toggle-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(93, 173, 226, 0.4); }
+
+        main { flex: 1; display: flex; overflow: hidden; padding: 15px; gap: 15px; }
+
+        #map-stage { flex: 3; position: relative; background: white; border-radius: var(--radius-box); box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; cursor: crosshair; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+        
+        #loading-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; color: var(--primary); display: none; pointer-events: none; background: rgba(255,255,255,0.9); padding: 15px 30px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 100; }
+
+        .zoom-controls { position: absolute; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 8px; }
+        .zoom-btn { background: white; border: 2px solid var(--border); border-radius: 12px; padding: 10px 0; font-size: 1.1rem; color: var(--text); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: 0.2s; font-family: 'Jua', sans-serif; width: 85px; text-align: center; font-weight: bold; }
+        .zoom-btn:hover { border-color: var(--primary); color: var(--primary); transform: scale(1.05); }
+
+        aside { flex: 1; max-width: 380px; background: var(--panel); border-radius: var(--radius-box); padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
+        .tool-section { display: flex; flex-direction: column; }
+        .tool-section h3 { margin: 0 0 10px 0; font-size: 1.15rem; color: var(--primary); text-align: center; }
+        
+        .btn-grid { display: grid; gap: 8px; margin-bottom: 8px; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        
+        .tool-btn { padding: 10px 4px; border: 2px solid var(--border); border-radius: 14px; background: white; cursor: pointer; font-size: 1.05rem; font-family: 'Jua', sans-serif; color: var(--text); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .tool-btn.selected { border-color: var(--primary); background: #EBF5FB; color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(93, 173, 226, 0.2);}
+        .action-btn { background: #F4F6F7; border-color: #D5D8DC; border-radius: 14px;}
+
+        .slider-container { display: flex; align-items: center; gap: 10px; background: #F8F9F9; padding: 10px 15px; border-radius: 14px; border: 1px solid var(--border); }
+        .slider-container label { font-size: 1rem; color: var(--primary); white-space: nowrap; }
+        .slider-container input[type="range"] { flex: 1; accent-color: var(--primary); cursor: pointer; }
+
+        .category-tab-menu { display: flex; gap: 4px; margin-bottom: 8px; }
+        .cat-tab-btn { flex: 1; padding: 8px 2px; font-size: 0.95rem; border: none; background: #F0F3F4; color: #7F8C8D; border-radius: 10px; cursor: pointer; font-family: 'Jua', sans-serif; }
+        .cat-tab-btn.active { background: #EBF5FB; color: var(--primary-hover); font-weight: bold; border: 1px solid var(--primary); }
+
+        .sticker-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; overflow-y: auto; align-content: start; flex: 1; padding-right: 4px; }
+        .sticker-list::-webkit-scrollbar { width: 6px; }
+        .sticker-list::-webkit-scrollbar-thumb { background: #D5D8DC; border-radius: 10px; }
+
+        .sticker-item { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 55px; border: 2px solid transparent; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 0.75rem; background: #FDFDFD; box-shadow: 0 2px 5px rgba(0,0,0,0.02); word-break: keep-all; letter-spacing: -0.5px; }
+        .sticker-item:hover, .sticker-item.selected { background: #EBF5FB; border-color: var(--primary); transform: scale(1.05); }
+        .sticker-emoji { font-size: 1.4rem; margin-bottom: 2px; }
+
+        footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; }
+        #share-btn { background: #FF9A9E; color: white; border: none; padding: 12px 30px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4); }
+        #share-btn:hover { background: #FF858A; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6); }
+
+        #help-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%; position: relative; font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
+        .modal-content h2 { color: var(--primary); margin-top: 0; font-family: 'Jua', sans-serif; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .modal-content ul { padding-left: 20px; font-size: 1.05rem; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="help-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="document.getElementById('help-modal').style.display='none'">X</button>
+            <h2>📖 &lt;MAP KIT&gt; 백지도 그리기 사용법</h2>
+            <ul>
+                <li><b>지형과 길 그리기:</b> 도로, 철도, 강 등을 자유롭게 그려보세요. 테두리가 살아있는 실제 도로와 철도 모양으로 그려집니다.</li>
+                <li><b>스티커 붙이기 (드래그/클릭):</b> 우리 동네에 맞는 36종의 스티커를 골라 지도 위에 찍어보세요. 마우스를 올리면 <b>X 삭제 버튼</b>이 뜹니다.</li>
+                <li><b>전도와 백지도:</b> 전도 보이기/숨김 기능으로 원래 지형을 확인하거나, 백지도 상태에서 마음껏 꾸며보세요.</li>
+            </ul>
+        </div>
+    </div>
+
+    <header>
+        <div class="menu-group">
+            <select id="sido-select"><option value="">시/도 선택</option></select>
+            <select id="sigungu-select"><option value="">시/군/구 선택</option></select>
+            <div class="custom-mode-badge" id="custom-badge">🎨 나만의 커스텀 백지도 작업 중</div>
+            <button class="btn-help" onclick="document.getElementById('help-modal').style.display='flex'">💡 사용법</button>
+            <button class="btn-back" onclick="if(window.parent && window.parent.closeApp) window.parent.closeApp(); else history.back();">🔙 메뉴로 돌아가기</button>
+        </div>
+        
+        <div class="toggle-container" style="margin-right: 10px;" id="base-map-toggle-wrapper">
+            <div class="toggle-btn active" id="toggle-map-show" onclick="setBaseMapMode(true)">🗺️ 전도 보이기</div>
+            <div class="toggle-btn" id="toggle-map-hide" onclick="setBaseMapMode(false)">❌ 전도 숨김</div>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle-btn active" id="toggle-show" onclick="setTextMode(true)">✅ 글씨 표시</div>
+            <div class="toggle-btn" id="toggle-hide" onclick="setTextMode(false)">❌ 글씨 숨김</div>
+        </div>
+    </header>
+
+    <main>
+        <div id="map-stage">
+            <div id="loading-msg">지도를 불러오는 중이에요! 🚀</div>
+            <canvas id="mapCanvas"></canvas>
+            
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomView(1.3)">확대</button>
+                <button class="zoom-btn" onclick="resetZoomControl()">화면맞춤</button>
+                <button class="zoom-btn" onclick="zoomView(0.7)">축소</button>
+            </div>
+        </div>
+        <aside>
+            <div class="btn-grid grid-3">
+                <button class="tool-btn action-btn" onclick="undo()" id="btn-undo">↩️ 취소</button>
+                <button class="tool-btn action-btn" onclick="redo()" id="btn-redo">↪️ 복구</button>
+                <button class="tool-btn" onclick="clearAll()" style="color: #E74C3C; border-color: #FADBD8;">🗑️ 싹지우기</button>
+            </div>
+
+            <div class="tool-section">
+                <h3>✨ 지형과 길 그리기 ✨</h3>
+                <div class="btn-grid grid-2">
+                    <button class="tool-btn selected" id="tool-road" onclick="setTool('road')">🛣️ 도로</button>
+                    <button class="tool-btn" id="tool-rail" onclick="setTool('rail')">🚂 철도</button>
+                </div>
+                <div class="btn-grid grid-3">
+                    <button class="tool-btn" id="tool-river" onclick="setTool('river')">🌊 강/하천</button>
+                    <button class="tool-btn" id="tool-highlighter" onclick="setTool('highlighter')">🖍️ 형광펜</button>
+                    <button class="tool-btn" id="tool-pan" onclick="setTool('pan')">🤚 이동</button>
+                </div>
+                <div class="btn-grid grid-2">
+                    <button class="tool-btn selected" id="mode-free" onclick="setDrawMode('free')">✍️ 펜으로 쓱쓱</button>
+                    <button class="tool-btn" id="mode-point" onclick="setDrawMode('point')">📏 점 찍어 잇기</button>
+                </div>
+                <div class="slider-container">
+                    <label for="line-width-slider">✏️ 굵기</label>
+                    <input type="range" id="line-width-slider" min="0.3" max="3" step="0.1" value="1">
+                </div>
+            </div>
+
+            <div class="tool-section" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <h3>🏠 우리 동네 스티커 붙이기 🏠</h3>
+                <div class="category-tab-menu">
+                    <button class="cat-tab-btn active" id="tab-cat-all" onclick="setCategoryFilter('all')">전체</button>
+                    <button class="cat-tab-btn" id="tab-cat-nature" onclick="setCategoryFilter('nature')">자연환경</button>
+                    <button class="cat-tab-btn" id="tab-cat-human" onclick="setCategoryFilter('human')">인문환경</button>
+                    <button class="cat-tab-btn" id="tab-cat-facility" onclick="setCategoryFilter('facility')">주요시설</button>
+                </div>
+                <div class="sticker-list" id="sticker-container"></div>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <button id="share-btn" onclick="shareCanvas()">📸 선생님께 제출하기</button>
+    </footer>
+
+    <script>
+        const regionData = {
+            "서울특별시": ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"],
+            "부산광역시": ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"],
+            "대구광역시": ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군", "군위군"],
+            "인천광역시": ["영종구", "제물포구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서해구", "검단구", "강화군", "옹진군"],
+            "전남광주통합특별시": ["동구", "서구", "남구", "북구", "광산구", "목포시", "여수시", "순천시", "나주시", "광양시", "담양군", "곡성군", "구례군", "고흥군", "보성군", "화순군", "장흥군", "강진군", "해남군", "영암군", "무안군", "함평군", "영광군", "장성군", "완도군", "진도군", "신안군"],
+            "대전광역시": ["동구", "중구", "서구", "유성구", "대덕구"],
+            "울산광역시": ["중구", "남구", "동구", "북구", "울주군"],
+            "세종특별자치시": ["-"],
+            "경기도": ["수원시", "성남시", "의정부시", "안양시", "부천시", "광명시", "동두천시", "평택시", "안산시", "고양시", "과천시", "구리시", "남양주시", "오산시", "시흥시", "군포시", "의왕시", "하남시", "용인시", "파주시", "이천시", "안성시", "김포시", "화성시", "광주시", "양주시", "포천시", "여주시", "연천군", "가평군", "양평군"],
+            "강원특별자치도": ["춘천시", "원주시", "강릉시", "동해시", "태백시", "속초시", "삼척시", "홍천군", "횡성군", "영월군", "평창군", "정선군", "철원군", "화천군", "양구군", "인제군", "고성군", "양양군"],
+            "충청북도": ["청주시", "충주시", "제천시", "보은군", "옥천군", "영동군", "증평군", "진천군", "괴산군", "음성군", "단양군"],
+            "충청남도": ["천안시", "공주시", "보령시", "아산시", "서산시", "논산시", "계룡시", "당진시", "금산군", "부여군", "서천군", "청양군", "홍성군", "예산군", "태안군"],
+            "전북특별자치도": ["전주시", "군산시", "익산시", "정읍시", "남원시", "김제시", "완주군", "진안군", "무주군", "장수군", "임실군", "순창군", "고창군", "부안군"],
+            "경상북도": ["포항시", "경주시", "김천시", "안동시", "구미시", "영주시", "영천시", "상주시", "문경시", "경산시", "의성군", "청송군", "영양군", "영덕군", "청도군", "고령군", "성주군", "칠곡군", "예천군", "봉화군", "울진군", "울릉군"],
+            "경상남도": ["창원시", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군", "창녕군", "고성군", "남해군", "하동군", "산청군", "함양군", "거창군", "합천군"],
+            "제주특별자치도": ["제주시", "서귀포시"]
+        };
+
+        const iconPack = [
+            { e: "⛰️", t: "산", c: "nature" }, { e: "🏔️", t: "봉우리", c: "nature" }, { e: "🌊", t: "강", c: "nature" }, { e: "🏞️", t: "하천", c: "nature" }, 
+            { e: "💧", t: "호수", c: "nature" }, { e: "🏖️", t: "바다", c: "nature" }, { e: "🏝️", t: "섬", c: "nature" }, { e: "🌾", t: "평야", c: "nature" }, 
+            { e: "🗺️", t: "반도", c: "nature" }, { e: "🏕️", t: "계곡", c: "nature" }, { e: "🦀", t: "갯벌", c: "nature" }, { e: "🌲", t: "숲", c: "nature" },
+            { e: "🏠", t: "우리집", c: "human" }, { e: "🏘️", t: "아파트", c: "human" }, { e: "🌾", t: "논", c: "human" }, { e: "🌽", t: "밭", c: "human" }, 
+            { e: "🍎", t: "과수원", c: "human" }, { e: "🚏", t: "정류장", c: "human" }, { e: "🚉", t: "지하철역", c: "human" }, { e: "🚆", t: "기차역", c: "human" }, 
+            { e: "🚍", t: "터미널", c: "human" }, { e: "⚓", t: "항구", c: "human" }, { e: "✈️", t: "공항", c: "human" }, { e: "🏭", t: "공장", c: "human" },
+            { e: "🏫", t: "학교", c: "facility" }, { e: "🚓", t: "경찰서", c: "facility" }, { e: "🚒", t: "소방서", c: "facility" }, { e: "📮", t: "우체국", c: "facility" }, 
+            { e: "🏛️", t: "시/구청", c: "facility" }, { e: "🏢", t: "주민센터", c: "facility" }, { e: "📖", t: "도서관", c: "facility" }, { e: "🏥", t: "병원", c: "facility" }, 
+            { e: "🏬", t: "마트", c: "facility" }, { e: "🏦", t: "은행", c: "facility" }, { e: "🏛️", t: "박물관", c: "facility" }, { e: "✚", t: "보건소", c: "facility" }
+        ];
+
+        const GITHUB_BASE_URL = "https://kimteacher1.github.io/korea-map-sigungu/";
+        
+        let state = { lines: [], stickers: [] };
+        let history = [JSON.parse(JSON.stringify(state))]; 
+        let step = 0;
+        
+        let showText = true; 
+        let mapSourceMode = 'preset';
+        let currentCat = 'all';
+        
+        let curTool = 'road'; 
+        let drawMode = 'free'; 
+        let curIcon = null;
+        
+        let nationalImg = null;
+        let isNationalMap = true;
+        let showBaseMap = true;
+
+        let mapImg = null;
+        let imgRect = { x: 0, y: 0, w: 0, h: 0 }; 
+        let isDrawing = false;
+        let isPanning = false;
+        let activeLine = null;
+        let hoverIdx = -1; 
+        
+        let draggingStickerIdx = -1;
+        let stickerMoved = false;
+
+        let scale = 1; let panX = 0; let panY = 0;
+        let startX = 0, startY = 0;
+
+        const cvs = document.getElementById('mapCanvas');
+        const ctx = cvs.getContext('2d');
+        const msg = document.getElementById('loading-msg');
+        const widthSlider = document.getElementById('line-width-slider');
+        
+        const selSido = document.getElementById('sido-select');
+        const selSigg = document.getElementById('sigungu-select');
+
+        window.onload = () => {
+            document.getElementById('help-modal').style.display = 'flex';
+            initDropdowns();
+            checkCustomMap();
+        };
+
+        function initDropdowns() {
+            for (let s in regionData) selSido.add(new Option(s, s));
+            selSido.onchange = () => {
+                selSigg.innerHTML = '<option value="">시/군/구 선택</option>';
+                if(!selSido.value) return;
+                regionData[selSido.value].forEach(g => selSigg.add(new Option(g, g)));
+                if (selSido.value === "세종특별자치시") { selSigg.value = "-"; selSigg.dispatchEvent(new Event('change')); }
+            };
+            selSigg.onchange = () => { loadMap(); };
+        }
+
+        function checkCustomMap() {
+            const customData = sessionStorage.getItem('customMap');
+            if (customData) {
+                mapSourceMode = 'custom';
+                document.getElementById('sido-select').style.display = 'none';
+                document.getElementById('sigungu-select').style.display = 'none';
+                document.getElementById('base-map-toggle-wrapper').style.display = 'none';
+                document.getElementById('custom-badge').style.display = 'inline-block';
+                
+                msg.style.display = 'block';
+                mapImg = new Image();
+                mapImg.onload = () => {
+                    msg.style.display = 'none';
+                    isNationalMap = false;
+                    showBaseMap = false;
+                    resetZoomControl();
+                    resize();
+                };
+                mapImg.src = customData;
+            } else {
+                loadNationalPreset();
+            }
+        }
+
+        function loadNationalPreset() {
+            nationalImg = new Image();
+            nationalImg.crossOrigin = "Anonymous";
+            nationalImg.onload = () => {
+                isNationalMap = true;
+                showBaseMap = true;
+                resize();
+            };
+            nationalImg.src = "https://kimteacher1.github.io/korea-map-layer/남한전도-지형-.png";
+        }
+
+        function pushState() {
+            history = history.slice(0, step + 1);
+            history.push(JSON.parse(JSON.stringify(state)));
+            step++; updateHistoryBtns();
+        }
+        function undo() { if (step > 0) { step--; state = JSON.parse(JSON.stringify(history[step])); redraw(); updateHistoryBtns(); } }
+        function redo() { if (step < history.length - 1) { step++; state = JSON.parse(JSON.stringify(history[step])); redraw(); updateHistoryBtns(); } }
+        function clearAll() { state = { lines: [], stickers: [] }; pushState(); redraw(); }
+        function updateHistoryBtns() {
+            document.getElementById('btn-undo').style.opacity = step > 0 ? "1" : "0.4";
+            document.getElementById('btn-redo').style.opacity = step < history.length - 1 ? "1" : "0.4";
+        }
+
+        function setCategoryFilter(cat) {
+            currentCat = cat;
+            document.querySelectorAll('.cat-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-cat-' + cat).classList.add('active');
+            curIcon = null; 
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+            renderIcons();
+        }
+
+        function renderIcons() {
+            const box = document.getElementById('sticker-container');
+            let offName = "시군구청";
+            if(selSigg.value) offName = selSigg.value === "-" ? "세종특별자치시청" : selSigg.value + "청";
+            
+            box.innerHTML = '';
+            const filtered = iconPack.filter(i => currentCat === 'all' || i.c === currentCat);
+            filtered.forEach(i => {
+                const text = (i.e === "🏛️" && i.c === "facility") ? offName : i.t;
+                const d = document.createElement('div'); d.className = 'sticker-item';
+                d.innerHTML = `<div class="sticker-emoji">${i.e}</div><div>${text}</div>`;
+                d.onclick = () => {
+                    curTool = 'icon'; curIcon = { e: i.e, t: text };
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+                    document.querySelectorAll('.sticker-item').forEach(b => b.classList.remove('selected'));
+                    d.classList.add('selected');
+                };
+                box.appendChild(d);
+            });
+        }
+        renderIcons();
+
+        function setTextMode(val) {
+            showText = val;
+            document.getElementById('toggle-show').classList.toggle('active', val);
+            document.getElementById('toggle-hide').classList.toggle('active', !val);
+            redraw();
+        }
+
+        function setBaseMapMode(val) {
+            if (val && !isNationalMap) {
+                if (confirm("다시 처음 지형도 그림으로 돌아가게 만들어주고, 그 때 입력한 데이터는 사라집니다. 그래도 지형도 화면으로 돌아갈까요?")) {
+                    state = { lines: [], stickers: [] }; history = [JSON.parse(JSON.stringify(state))]; step = 0; updateHistoryBtns();
+                    isNationalMap = true; showBaseMap = true;
+                    document.getElementById('sido-select').value = "";
+                    document.getElementById('sigungu-select').innerHTML = '<option value="">시/군/구 선택</option>';
+                    document.getElementById('toggle-map-show').classList.add('active');
+                    document.getElementById('toggle-map-hide').classList.remove('active');
+                    resetZoomControl(); resize();
+                } else { return; }
+            } else {
+                showBaseMap = val;
+                document.getElementById('toggle-map-show').classList.toggle('active', val);
+                document.getElementById('toggle-map-hide').classList.toggle('active', !val);
+                redraw();
+            }
+        }
+
+        function setTool(t) {
+            curTool = t; curIcon = null;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('tool-' + t).classList.add('selected');
+            document.querySelectorAll('.sticker-item').forEach(b => b.classList.remove('selected'));
+            if (t === 'pan') cvs.style.cursor = 'grab'; else cvs.style.cursor = 'crosshair';
+        }
+
+        function setDrawMode(m) {
+            drawMode = m; activeLine = null;
+            document.getElementById('mode-free').classList.remove('selected');
+            document.getElementById('mode-point').classList.remove('selected');
+            document.getElementById('mode-' + m).classList.add('selected');
+        }
+
+        function loadMap() {
+            if (mapSourceMode === 'custom') return;
+            const sd = selSido.value; const sgg = selSigg.value;
+            if (!sd || !sgg) return;
+
+            isNationalMap = false;
+            showBaseMap = false;
+            document.getElementById('toggle-map-show').classList.remove('active');
+            document.getElementById('toggle-map-hide').classList.add('active');
+
+            msg.style.display = 'block'; renderIcons();
+            
+            let fetchSd = sd;
+            let fetchSgg = sgg;
+
+            if (sd === "전남광주통합특별시") {
+                const gwangjuSigungu = ["동구", "서구", "남구", "북구", "광산구"];
+                fetchSd = gwangjuSigungu.includes(sgg) ? "광주광역시" : "전라남도";
+            } else if (sd === "인천광역시") {
+                if (sgg === "영종구") fetchSgg = "중구";
+                if (sgg === "제물포구") fetchSgg = "동구";
+                if (sgg === "서해구" || sgg === "검단구") fetchSgg = "서구";
+            }
+
+            let url1 = "", url2 = "";
+            if (fetchSd === "세종특별자치시") { url1 = `${GITHUB_BASE_URL}세종특별자치시-.jpg`; } 
+            else { url1 = `${GITHUB_BASE_URL}${fetchSd}-${fetchSgg}.jpg`; url2 = `${GITHUB_BASE_URL}${fetchSd}-${fetchSgg}-.jpg`; }
+
+            const img = new Image(); img.crossOrigin = "Anonymous";
+            img.onload = () => { mapImg = img; msg.style.display = 'none'; clearAll(); resetZoomControl(); resize(); };
+            img.onerror = () => {
+                if (url2 && img.src !== url2) img.src = url2; 
+                else { 
+                    mapImg = null; msg.style.display = 'none'; clearAll(); resize();
+                    alert("⚠️ 지도를 찾을 수 없어요! 파일 이름을 다시 확인해 주세요."); 
+                }
+            };
+            img.src = url1;
+        }
+
+        function resize() {
+            cvs.width = cvs.parentElement.clientWidth; cvs.height = cvs.parentElement.clientHeight;
+            
+            let activeImg = isNationalMap ? nationalImg : mapImg;
+            
+            if (!activeImg) {
+                const margin = 20;
+                imgRect.x = margin; imgRect.y = margin;
+                imgRect.w = cvs.width - margin * 2; imgRect.h = cvs.height - margin * 2;
+            } else {
+                const imgW = activeImg.naturalWidth || activeImg.width;
+                const imgH = activeImg.naturalHeight || activeImg.height;
+                const s = Math.min(cvs.width / imgW, cvs.height / imgH) * 0.95; 
+                imgRect.w = imgW * s; imgRect.h = imgH * s;
+                imgRect.x = (cvs.width - imgRect.w) / 2; imgRect.y = (cvs.height - imgRect.h) / 2;
+            }
+            redraw();
+        }
+        window.addEventListener('resize', resize);
+
+        function zoomView(factor) {
+            const newScale = Math.min(Math.max(0.5, scale * factor), 6);
+            const cx = cvs.width / 2; const cy = cvs.height / 2;
+            panX = cx - (cx - panX) * (newScale / scale);
+            panY = cy - (cy - panY) * (newScale / scale);
+            scale = newScale; redraw();
+        }
+
+        function resetZoomControl() { scale = 1; panX = 0; panY = 0; redraw(); }
+
+        cvs.addEventListener('wheel', e => {
+            e.preventDefault();
+            const factor = e.deltaY < 0 ? 1.1 : 0.9;
+            const mx = e.clientX - cvs.getBoundingClientRect().left;
+            const my = e.clientY - cvs.getBoundingClientRect().top;
+            const newScale = Math.min(Math.max(0.5, scale * factor), 6);
+            panX = mx - (mx - panX) * (newScale / scale);
+            panY = my - (my - panY) * (newScale / scale);
+            scale = newScale; redraw();
+        });
+
+        function getPt(evt) {
+            const rect = cvs.getBoundingClientRect();
+            const clientX = evt.clientX || (evt.touches && evt.touches[0] ? evt.touches[0].clientX : 0);
+            const clientY = evt.clientY || (evt.touches && evt.touches[0] ? evt.touches[0].clientY : 0);
+            const cx = clientX - rect.left; const cy = clientY - rect.top;
+            const originalX = (cx - panX) / scale; const originalY = (cy - panY) / scale;
+            if(originalX < imgRect.x || originalX > imgRect.x + imgRect.w || originalY < imgRect.y || originalY > imgRect.y + imgRect.h) return null;
+            return { x: (originalX - imgRect.x) / imgRect.w, y: (originalY - imgRect.y) / imgRect.h };
+        }
+        function absPt(pt) { return { x: pt.x * imgRect.w + imgRect.x, y: pt.y * imgRect.h + imgRect.y }; }
+
+        function redraw() {
+            ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, cvs.width, cvs.height);
+            
+            ctx.save();
+            ctx.translate(panX, panY); ctx.scale(scale, scale);
+            
+            let activeImg = isNationalMap ? nationalImg : mapImg;
+            if ((!isNationalMap && !mapImg) || (isNationalMap && !showBaseMap)) {
+                ctx.fillStyle = "#FFFFFF"; ctx.strokeStyle = "#E8E8E8"; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.roundRect(imgRect.x, imgRect.y, imgRect.w, imgRect.h, 24); 
+                ctx.fill(); ctx.stroke();
+            } else if (activeImg) {
+                ctx.drawImage(activeImg, imgRect.x, imgRect.y, imgRect.w, imgRect.h);
+            }
+
+            const rivers = state.lines.filter(l => l.type === 'river');
+            if (activeLine && activeLine.type === 'river') rivers.push(activeLine);
+            
+            if (rivers.length > 0) {
+                ctx.lineCap = "round"; ctx.lineJoin = "round";
+                rivers.forEach(l => {
+                    ctx.beginPath(); l.pts.forEach((p, i) => { const ap = absPt(p); i === 0 ? ctx.moveTo(ap.x, ap.y) : ctx.lineTo(ap.x, ap.y); });
+                    ctx.lineWidth = 26 * (l.width || 1); ctx.strokeStyle = "#2980B9"; ctx.stroke();
+                });
+                rivers.forEach(l => {
+                    ctx.beginPath(); l.pts.forEach((p, i) => { const ap = absPt(p); i === 0 ? ctx.moveTo(ap.x, ap.y) : ctx.lineTo(ap.x, ap.y); });
+                    ctx.lineWidth = 18 * (l.width || 1); ctx.strokeStyle = "#74B9FF"; ctx.stroke();
+                });
+            }
+
+            state.lines.forEach(l => { if (l.type !== 'river' && l.type !== 'highlighter') drawLineObj(l); });
+            if (activeLine && activeLine.type !== 'river' && activeLine.type !== 'highlighter') drawLineObj(activeLine);
+
+            const highlighters = state.lines.filter(l => l.type === 'highlighter');
+            if (activeLine && activeLine.type === 'highlighter') highlighters.push(activeLine);
+            if (highlighters.length > 0) {
+                ctx.save(); ctx.globalAlpha = 0.4; ctx.lineCap = "round"; ctx.lineJoin = "round";
+                highlighters.forEach(l => {
+                    ctx.beginPath(); l.pts.forEach((p, i) => { const ap = absPt(p); i === 0 ? ctx.moveTo(ap.x, ap.y) : ctx.lineTo(ap.x, ap.y); });
+                    ctx.lineWidth = 25 * (l.width || 1); ctx.strokeStyle = "#FF9F43"; ctx.stroke();
+                });
+                ctx.restore();
+            }
+
+            state.stickers.forEach((s, i) => {
+                const p = absPt(s.pt);
+                ctx.font = "30px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(s.e, p.x, p.y);
+                
+                if (showText) {
+                    ctx.font = "16px 'Jua'"; ctx.fillStyle = "#2c3e50"; 
+                    ctx.strokeStyle = "white"; ctx.lineWidth = 4;
+                    ctx.strokeText(s.t, p.x, p.y + 24); ctx.fillText(s.t, p.x, p.y + 24);
+                }
+                
+                if (hoverIdx === i || draggingStickerIdx === i) {
+                    ctx.fillStyle = "#FF5E5E"; ctx.beginPath(); ctx.arc(p.x+18, p.y-18, 14, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "white"; ctx.font = "bold 14px sans-serif"; ctx.fillText("X", p.x+18, p.y-17);
+                }
+            });
+
+            if (state.stickers.length > 0) drawLegend();
+            drawCompass();
+            ctx.restore();
+        }
+
+        function drawLineObj(l) {
+            if (l.pts.length < 2) return;
+            const w = l.width || 1; 
+            const path = () => {
+                ctx.beginPath();
+                l.pts.forEach((p, i) => { const ap = absPt(p); i === 0 ? ctx.moveTo(ap.x, ap.y) : ctx.lineTo(ap.x, ap.y); });
+            };
+
+            if (l.type === 'road') {
+                ctx.strokeStyle = "#95A5A6"; ctx.lineWidth = 12 * w; ctx.lineCap = "round"; ctx.lineJoin = "round";
+                ctx.setLineDash([]); path(); ctx.stroke();
+                ctx.strokeStyle = "#F4D03F"; ctx.lineWidth = 3 * w; ctx.setLineDash([14 * w, 14 * w]); path(); ctx.stroke();
+            } else if (l.type === 'rail') {
+                ctx.strokeStyle = "#34495E"; ctx.lineWidth = 10 * w; ctx.lineCap = "butt"; ctx.lineJoin = "miter";
+                ctx.setLineDash([]); path(); ctx.stroke();
+                ctx.strokeStyle = "white"; ctx.lineWidth = 8 * w; ctx.setLineDash([6 * w, 12 * w]); path(); ctx.stroke();
+            }
+            ctx.setLineDash([]); 
+        }
+
+        function drawLegend() {
+            const u = []; state.stickers.forEach(s => { if(!u.find(x => x.t === s.t)) u.push(s); });
+            const w = 120, h = 45 + (u.length * 30), lx = imgRect.x + 20, ly = imgRect.y + 20;
+            ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.strokeStyle = "#D5D8DC"; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.roundRect(lx, ly, w, h, 15); ctx.fill(); ctx.stroke(); 
+            ctx.fillStyle = "#5DADE2"; ctx.font = "20px 'Jua'"; ctx.textAlign = "center"; ctx.fillText("🔍 범례", lx + w/2, ly + 25);
+            ctx.textAlign = "left"; ctx.fillStyle = "#4A4A4A";
+            u.forEach((sym, i) => {
+                ctx.font = "18px sans-serif"; ctx.fillText(sym.e, lx + 15, ly + 55 + (i * 30));
+                ctx.font = "17px 'Jua'"; ctx.fillText(sym.t, lx + 45, ly + 55 + (i * 30));
+            });
+        }
+
+        function drawCompass() {
+            const cx = imgRect.x + imgRect.w - 35, cy = imgRect.y + 40;
+            ctx.strokeStyle = "#7F8C8D"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.lineJoin = "round";
+            ctx.beginPath(); ctx.moveTo(cx, cy - 20); ctx.lineTo(cx, cy + 15); ctx.moveTo(cx - 15, cy + 2); ctx.lineTo(cx + 15, cy + 2); ctx.moveTo(cx - 15, cy + 2); ctx.lineTo(cx, cy - 20); ctx.stroke();
+            ctx.fillStyle = "#FF5E5E"; ctx.font = "20px 'Jua'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("북", cx, cy - 30);
+        }
+
+        cvs.addEventListener('pointermove', e => {
+            const rect = cvs.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            
+            if (isPanning && curTool === 'pan') {
+                panX = e.clientX - startX; panY = e.clientY - startY; redraw(); return;
+            }
+
+            if (draggingStickerIdx !== -1) {
+                e.preventDefault(); stickerMoved = true;
+                const p = getPt(e);
+                if (p) { state.stickers[draggingStickerIdx].pt = p; redraw(); }
+                return;
+            }
+
+            let found = -1;
+            for (let i = state.stickers.length - 1; i >= 0; i--) {
+                const ap = absPt(state.stickers[i].pt);
+                const screenX = ap.x * scale + panX;
+                const screenY = ap.y * scale + panY;
+                if (Math.hypot(mx - screenX, my - screenY) < 35) { found = i; break; }
+            }
+            if (hoverIdx !== found) { hoverIdx = found; redraw(); }
+            
+            if (isDrawing && drawMode === 'free' && activeLine) {
+                const p = getPt(e); if (p) { activeLine.pts.push(p); redraw(); }
+            }
+        });
+
+        cvs.addEventListener('pointerdown', e => {
+            const rect = cvs.getBoundingClientRect();
+            const clkX = e.clientX - rect.left, clkY = e.clientY - rect.top;
+            
+            if (curTool === 'pan') {
+                isPanning = true; cvs.style.cursor = 'grabbing';
+                startX = e.clientX - panX; startY = e.clientY - panY; return;
+            }
+
+            for (let i = state.stickers.length - 1; i >= 0; i--) {
+                const ap = absPt(state.stickers[i].pt);
+                const screenX = ap.x * scale + panX;
+                const screenY = ap.y * scale + panY;
+                
+                if (hoverIdx === i && Math.hypot(clkX - (screenX+18), clkY - (screenY-18)) < 30) {
+                    state.stickers.splice(i, 1); hoverIdx = -1; pushState(); redraw(); return; 
+                }
+                if (Math.hypot(clkX - screenX, clkY - screenY) < 25) {
+                    draggingStickerIdx = i; stickerMoved = false; return; 
+                }
+            }
+            
+            const p = getPt(e); if (!p) return;
+            
+            if (curTool === 'icon' && curIcon) {
+                state.stickers.push({ e: curIcon.e, t: curIcon.t, pt: p }); pushState(); redraw();
+            } else if (['road','rail','river','highlighter'].includes(curTool)) {
+                const w = parseFloat(widthSlider.value); 
+                if (drawMode === 'free') { isDrawing = true; activeLine = { type: curTool, pts: [p], width: w }; } 
+                else {
+                    if (!activeLine || activeLine.type !== curTool) activeLine = { type: curTool, pts: [p], width: w }; 
+                    else activeLine.pts.push(p); redraw();
+                }
+            }
+        });
+
+        window.addEventListener('pointerup', () => {
+            if (isPanning) { isPanning = false; cvs.style.cursor = 'grab'; }
+            if (isDrawing && drawMode === 'free' && activeLine) {
+                state.lines.push(activeLine); activeLine = null; isDrawing = false; pushState(); redraw();
+            }
+            if (draggingStickerIdx !== -1) {
+                if (!stickerMoved) {
+                    const s = state.stickers[draggingStickerIdx];
+                    const newName = prompt("이 장소의 새로운 이름을 입력하세요:", s.t);
+                    if (newName !== null && newName.trim() !== "") { s.t = newName.trim(); }
+                }
+                draggingStickerIdx = -1; pushState(); redraw();
+            }
+        });
+
+        cvs.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            if (drawMode === 'point' && activeLine) { state.lines.push(activeLine); activeLine = null; pushState(); redraw(); }
+        });
+
+        function shareCanvas() {
+            const tempScale = scale; const tempPanX = panX; const tempPanY = panY;
+            scale = 1; panX = 0; panY = 0; hoverIdx = -1; draggingStickerIdx = -1; redraw();
+
+            cvs.toBlob(blob => {
+                scale = tempScale; panX = tempPanX; panY = tempPanY; redraw();
+                if (window.parent && window.parent.handleMapSave) {
+                    const reader = new FileReader(); reader.readAsDataURL(blob);
+                    reader.onloadend = function() { window.parent.handleMapSave(reader.result, "백지도 그리기"); }
+                } else {
+                    const sgg = mapImg ? (selSigg.value === "-" ? "세종시" : selSigg.value) : "우리동네";
+                    const url = URL.createObjectURL(blob); const a = document.createElement('a'); 
+                    a.href = url; a.download = `MAP_KIT_백지도_${sgg}.jpg`; 
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                }
+            }, 'image/jpeg', 0.95);
+        }
+    </script>
+</body>
+</html>

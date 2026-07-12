@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&lt;MAP KIT&gt; 지도 겹치기</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        
+        :root {
+            --primary: #48C9B0; 
+            --primary-hover: #1ABC9C;
+            --bg: #F4F6F6;      
+            --panel: #FFFFFF;
+            --text: #4A4A4A;
+            --border: #E5E7E9;
+            --radius-btn: 12px; 
+            --radius-box: 24px;
+        }
+
+        * { box-sizing: border-box; user-select: none; }
+        
+        body { font-family: 'Jua', sans-serif; margin: 0; padding: 0; background: var(--bg); display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: var(--text); }
+
+        header { background: var(--panel); padding: 15px 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 100; border-bottom-left-radius: var(--radius-box); border-bottom-right-radius: var(--radius-box); margin: 0 15px; }
+        
+        .map-selector { display: flex; align-items: center; gap: 15px; }
+        h1 { margin: 0; font-size: 1.8rem; color: var(--primary); letter-spacing: 1px; }
+        
+        select { height: 45px; padding: 0 15px; border-radius: var(--radius-btn); border: 2px solid var(--primary); font-size: 1.2rem; font-family: 'Jua', sans-serif; color: var(--primary); outline: none; cursor: pointer; background: #FDFDFD; transition: 0.2s; font-weight: bold; }
+        select:hover { background: #E8F8F5; }
+
+        .btn-help { background: #FEF9E7; color: #D35400; padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); transition: 0.3s; border: none; font-family: 'Jua', sans-serif; font-weight: bold; }
+        .btn-back { background: #E74C3C; color: white; padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); transition: 0.3s; border: none; font-family: 'Jua', sans-serif; font-weight: bold; margin-left: 5px; }
+        
+        .mode-container { display: flex; background: #EAEDED; border-radius: 16px; padding: 4px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);}
+        .mode-btn { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; color: #7F8C8D; border-radius: 12px; transition: 0.3s; }
+        .mode-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(26, 188, 156, 0.4); }
+
+        .toggle-btn { padding: 10px 15px; font-size: 1rem; cursor: pointer; color: #95A5A6; transition: 0.3s; border-radius: 12px; margin-left: 10px; background: #EAEDED;}
+        .toggle-btn.active { background: #5DADE2; color: white; }
+
+        main { flex: 1; display: flex; overflow: hidden; padding: 15px; gap: 15px; }
+
+        #map-viewport { flex: 3; position: relative; background: #FFFFFF; border-radius: var(--radius-box); box-shadow: inset 0 4px 20px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; cursor: grab; }
+        #map-viewport:active { cursor: grabbing; }
+        #map-viewport.stamp-mode { cursor: crosshair; }
+        #map-viewport.stamp-mode:active { cursor: crosshair; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+        
+        #loading-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: bold; color: var(--primary); pointer-events: none; background: rgba(255,255,255,0.95); padding: 20px 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; line-height: 1.5; z-index: 200; border: 2px solid var(--primary); }
+
+        .zoom-controls { position: absolute; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 8px; }
+        .zoom-btn { background: white; border: 2px solid var(--border); border-radius: 10px; padding: 10px; font-size: 1.1rem; color: var(--text); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s; font-family: 'Jua', sans-serif; font-weight: bold; width: 100px; text-align: center; }
+
+        aside { flex: 1; max-width: 420px; display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
+        
+        .control-box { background: var(--panel); border-radius: var(--radius-box); padding: 15px 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+        .control-box h3 { margin: 0 0 10px 0; font-size: 1.15rem; color: var(--primary); text-align: center; border-bottom: 2px dashed var(--border); padding-bottom: 8px; flex-shrink: 0; }
+
+        .layer-list { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+        .layer-item { display: flex; align-items: center; gap: 8px; background: #FDFDFD; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border); transition: 0.2s; }
+        .layer-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+        .layer-item label { flex: 1; font-size: 1.05rem; cursor: pointer; white-space: nowrap; }
+        .layer-item input[type="range"] { width: 75px; accent-color: var(--primary); cursor: pointer; }
+
+        .tab-menu { display: flex; gap: 5px; margin-bottom: 10px; flex-shrink: 0; }
+        .tab-btn { flex: 1; padding: 10px; font-size: 1.05rem; border: none; background: #F0F3F4; color: #7F8C8D; border-radius: 12px; cursor: pointer; font-family: 'Jua', sans-serif; transition: 0.2s; }
+        .tab-btn.active { background: #D1F2EB; color: #117A65; font-weight: bold; border: 2px solid #1ABC9C; }
+
+        .sticker-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1; overflow: hidden; align-content: start; }
+        .sticker-item { background: #FDFDFD; border: 2px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; height: 45px; cursor: pointer; transition: 0.2s; font-size: 1.6rem; }
+        .sticker-item:hover, .sticker-item.selected { border-color: var(--primary); background: #E8F8F5; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
+
+        #tab-content-text { grid-template-columns: repeat(3, 1fr); }
+        #tab-content-text .sticker-item { height: 40px; font-size: 1.1rem; color: #2980B9; }
+
+        .btn-clear { width: 100%; padding: 10px; background: #FDEDEC; color: #E74C3C; border: none; border-radius: 12px; font-size: 1.1rem; font-family: 'Jua', sans-serif; cursor: pointer; margin-top: 10px; transition: 0.2s; flex-shrink: 0; }
+        
+        footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; flex-shrink: 0; gap: 10px;}
+        .btn-action { color: white; border: none; padding: 12px 25px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        #download-btn { background: #95A5A6; }
+        #download-btn:hover { background: #7F8C8D; transform: translateY(-3px); }
+        #submit-btn { background: #FF9A9E; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4); }
+        #submit-btn:hover { background: #FF858A; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6); }
+
+        #help-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%; position: relative; font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
+        .modal-content h2 { color: var(--primary); margin-top: 0; font-family: 'Jua', sans-serif; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="help-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="document.getElementById('help-modal').style.display='none'">X</button>
+            <h2>📖 &lt;MAP KIT&gt; 지도 겹치기 사용법</h2>
+            <ul>
+                <li><b>레이어 겹치기:</b> 우측 패널에서 각 레이어의 체크박스와 투명도(슬라이더)를 조절하여 지형과 인구, 산업 간의 관계를 분석해보세요.</li>
+                <li><b>스티커 및 지명 쓰기:</b> 기호 스티커를 붙이거나 <b>'✍️ 직접 입력하기'</b>로 이름을 써보세요.</li>
+                <li><b>제출 및 저장:</b> 분석을 마치면 [다운로드] 버튼으로 기기에 저장하거나, [선생님께 제출하기] 버튼으로 활동 내용을 런처로 보낼 수 있습니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <header>
+        <div class="map-selector">
+            <h1>🗺️</h1>
+            <select id="map-region" onchange="loadMap()">
+                <option value="남한전도">남한전도</option>
+                <option value="대한민국전도">대한민국전도</option>
+                <option value="세계지도">세계지도</option>
+            </select>
+            <button class="btn-help" onclick="document.getElementById('help-modal').style.display='flex'">💡 사용법</button>
+            <button class="btn-back" onclick="if(window.parent && window.parent.closeApp) window.parent.closeApp(); else history.back();">🔙 메뉴로 돌아가기</button>
+        </div>
+        
+        <div style="display: flex; align-items: center;">
+            <div class="mode-container">
+                <div class="mode-btn active" id="mode-pan" onclick="setMode('pan')">✋ 화면 이동</div>
+                <div class="mode-btn" id="mode-stamp" onclick="setMode('stamp')">👆 스티커 찍기</div>
+            </div>
+            <div class="toggle-btn active" id="toggle-text" onclick="toggleText()">✅ 기호 라벨 표시</div>
+        </div>
+    </header>
+
+    <main>
+        <div id="map-viewport">
+            <div id="loading-msg">지도를 불러오는 중이에요!<br><span style="font-size:1rem; color:#7F8C8D; font-weight:normal;" id="loading-sub"></span></div>
+            <canvas id="mapCanvas"></canvas>
+            
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoom(1.2)">확대</button>
+                <button class="zoom-btn" onclick="resetZoom()">화면맞춤</button>
+                <button class="zoom-btn" onclick="zoom(0.8)">축소</button>
+            </div>
+        </div>
+
+        <aside>
+            <div class="control-box">
+                <h3>주제도 겹쳐보기 (투명도 조절)</h3>
+                <div class="layer-list" id="layer-controls"></div>
+            </div>
+
+            <div class="control-box" style="flex: 1;">
+                <h3>스티커 및 이름 쓰기 (드래그:이동 / 클릭:변경)</h3>
+                
+                <div class="slider-container" style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px; background: #F8F9F9; padding: 10px; border-radius: 12px; border: 1px solid var(--border);">
+                    <label for="sticker-size-slider" style="font-size: 1rem; color: var(--primary); white-space: nowrap; font-weight: bold;">📐 스티커 크기</label>
+                    <input type="range" id="sticker-size-slider" min="0.5" max="2" step="0.1" value="1" style="flex: 1; accent-color: var(--primary); cursor: pointer;" oninput="redraw()">
+                </div>
+
+                <div class="tab-menu">
+                    <button class="tab-btn active" id="btn-mode-icon" onclick="setStickerMode('icon')">🎨 기호 스티커</button>
+                    <button class="tab-btn" id="btn-mode-text" onclick="setStickerMode('text')">📝 이름 스티커</button>
+                </div>
+
+                <div class="sticker-container" id="icon-pack-container"></div>
+                <div class="sticker-container" id="tab-content-text" style="display: none;"></div>
+                
+                <button class="btn-clear" onclick="clearStickers()">🗑️ 지도 위 스티커 모두 지우기</button>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <button class="btn-action" id="download-btn" onclick="handleAction('download')">📥 다운로드(저장)</button>
+        <button class="btn-action" id="submit-btn" onclick="handleAction('submit')">📸 선생님께 제출하기</button>
+    </footer>
+
+    <script>
+        const GITHUB_BASE_URL = "https://kimteacher1.github.io/korea-map-layer/";
+
+        const mapConfigs = {
+            "남한전도": {
+                base: { id: "base", name: "바탕" },
+                layers: [
+                    { id: 'terrain', name: '지형', emoji: '⛰️' }, { id: 'pop', name: '인구분포', emoji: '👥' },
+                    { id: 'mountain', name: '주요산맥', emoji: '🏔️' }, { id: 'river', name: '주요하천', emoji: '🌊' },
+                    { id: 'road', name: '주요도로', emoji: '🛣️' }, { id: 'rail', name: '주요철도', emoji: '🚂' }
+                ],
+                fileSuffix: "-.png"
+            },
+            "대한민국전도": {
+                base: { id: "base", name: "경계" },
+                layers: [
+                    { id: 'terrain', name: '지형', emoji: '⛰️' },
+                    { id: 'mountain', name: '주요산맥', emoji: '🏔️' }, { id: 'river', name: '주요하천', emoji: '🌊' }
+                ],
+                fileSuffix: "-.png"
+            },
+            "세계지도": {
+                base: { id: "base", name: "경계" },
+                layers: [
+                    { id: 'terrain', name: '지형', emoji: '⛰️' }, { id: 'pop', name: '인구분포', emoji: '👥' },
+                    { id: 'desert', name: '주요사막', emoji: '🐫' }, { id: 'mountain', name: '주요산맥', emoji: '🏔️' },
+                    { id: 'river', name: '주요하천', emoji: '🌊' }, { id: 'tectonic', name: '판구조도', emoji: '🧩' },
+                    { id: 'current', name: '해류', emoji: '🌀' }
+                ],
+                fileSuffix: ".png"
+            }
+        };
+
+        const domesticIcons = [
+            { e: "⛰️", t: "산", c: "nature" }, { e: "🏔️", t: "봉우리", c: "nature" }, { e: "🌊", t: "강", c: "nature" }, { e: "🏞️", t: "하천", c: "nature" }, 
+            { e: "💧", t: "호수", c: "nature" }, { e: "🏖️", t: "바다", c: "nature" }, { e: "🏝️", t: "섬", c: "nature" }, { e: "🌾", t: "평야", c: "nature" }, 
+            { e: "🗺️", t: "반도", c: "nature" }, { e: "🏕️", t: "계곡", c: "nature" }, { e: "🦀", t: "갯벌", c: "nature" }, { e: "🌲", t: "숲", c: "nature" },
+            { e: "🏠", t: "우리집", c: "human" }, { e: "🏘️", t: "아파트", c: "human" }, { e: "🌾", t: "논", c: "human" }, { e: "🌽", t: "밭", c: "human" }, 
+            { e: "🍎", t: "과수원", c: "human" }, { e: "🚏", t: "정류장", c: "human" }, { e: "🚉", t: "지하철역", c: "human" }, { e: "🚆", t: "기차역", c: "human" }, 
+            { e: "🚍", t: "터미널", c: "human" }, { e: "⚓", t: "항구", c: "human" }, { e: "✈️", t: "공항", c: "human" }, { e: "🏭", t: "공장", c: "human" },
+            { e: "🏫", t: "학교", c: "facility" }, { e: "🚓", t: "경찰서", c: "facility" }, { e: "🚒", t: "소방서", c: "facility" }, { e: "📮", t: "우체국", c: "facility" }, 
+            { e: "🏛️", t: "시/구청", c: "facility" }, { e: "🏢", t: "주민센터", c: "facility" }, { e: "📖", t: "도서관", c: "facility" }, { e: "🏥", t: "병원", c: "facility" }, 
+            { e: "🏬", t: "마트", c: "facility" }, { e: "🏦", t: "은행", c: "facility" }, { e: "🏛️", t: "박물관", c: "facility" }, { e: "✚", t: "보건소", c: "facility" }
+        ];
+
+        const worldIcons = [
+            { e: "📍", t: "주요도시" }, { e: "◉", t: "수도" }, { e: "⭐", t: "핵심지역" }, { e: "🏛️", t: "국가기관" }, { e: "🏭", t: "산업단지" },
+            { e: "✈️", t: "국제공항" }, { e: "⚓", t: "주요항구" }, { e: "🚄", t: "대륙횡단철도" }, { e: "🚢", t: "운하/해협" }, { e: "⛽", t: "자원산지" },
+            { e: "⛰️", t: "세계명산" }, { e: "🌊", t: "대하천" }, { e: "🐫", t: "주요사막" }, { e: "💧", t: "대호수" }, { e: "🌲", t: "열대우림" },
+            { e: "📜", t: "세계유산" }, { e: "🗿", t: "고대문명" }, { e: "🌋", t: "화산/지진대" }, { e: "🐧", t: "극지방" }, { e: "🧭", t: "탐험지" }
+        ];
+
+        const domesticTexts = ["태백산맥", "소백산맥", "호남평야", "나주평야", "한강", "낙동강", "금강", "영산강", "서울특별시", "부산광역시", "제주특별자치도"];
+        const worldTexts = ["태평양", "대서양", "인도양", "남극해", "북극해", "아시아", "유럽", "아프리카", "북아메리카", "남아메리카", "오세아니아", "남극대륙"];
+
+        let selectedSticker = null; let stickerMode = 'icon'; 
+        let stickers = []; let hoverIdx = -1; let showText = true;
+
+        function buildUI(mapPrefix) {
+            const config = mapConfigs[mapPrefix];
+            const layerBox = document.getElementById('layer-controls');
+            
+            layerBox.innerHTML = `
+                <div class="layer-item">
+                    <input type="checkbox" id="chk-base" checked onchange="redraw()">
+                    <label>🏞️ ${config.base.name}</label>
+                    <input type="range" id="op-base" min="0" max="1" step="0.1" value="1" oninput="redraw()">
+                </div>
+            `;
+            config.layers.forEach(l => {
+                layerBox.innerHTML += `
+                    <div class="layer-item">
+                        <input type="checkbox" id="chk-${l.id}" onchange="redraw()">
+                        <label>${l.emoji} ${l.name}</label>
+                        <input type="range" id="op-${l.id}" min="0" max="1" step="0.1" value="0.8" oninput="redraw()">
+                    </div>
+                `;
+            });
+
+            const isWorld = (mapPrefix === '세계지도');
+            const activeIcons = isWorld ? worldIcons : domesticIcons;
+            const activeTexts = isWorld ? worldTexts : domesticTexts;
+            
+            const iconContainer = document.getElementById('icon-pack-container');
+            iconContainer.innerHTML = '';
+            activeIcons.forEach(item => {
+                const div = document.createElement('div'); div.className = 'sticker-item';
+                div.title = item.t; div.innerHTML = item.e;
+                div.onclick = () => {
+                    document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedSticker = { type: 'icon', e: item.e, t: item.t };
+                    setStickerMode('icon'); setMode('stamp'); 
+                };
+                iconContainer.appendChild(div);
+            });
+
+            const textContainer = document.getElementById('tab-content-text');
+            textContainer.innerHTML = '';
+            
+            const customDiv = document.createElement('div'); 
+            customDiv.className = 'sticker-item';
+            customDiv.style.gridColumn = 'span 3';
+            customDiv.style.background = '#E8F8F5';
+            customDiv.style.color = '#1ABC9C';
+            customDiv.style.fontWeight = 'bold';
+            customDiv.innerHTML = '✍️ 직접 입력하기';
+            customDiv.onclick = () => {
+                document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
+                customDiv.classList.add('selected');
+                selectedSticker = { type: 'custom-text' };
+                setMode('stamp'); 
+            };
+            textContainer.appendChild(customDiv);
+
+            activeTexts.forEach(t => {
+                const div = document.createElement('div'); div.className = 'sticker-item';
+                div.innerHTML = t;
+                div.onclick = () => {
+                    document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                    selectedSticker = { type: 'text-only', text: t };
+                    setMode('stamp'); 
+                };
+                textContainer.appendChild(div);
+            });
+        }
+
+        function setStickerMode(mode) {
+            stickerMode = mode;
+            document.getElementById('btn-mode-icon').classList.toggle('active', mode === 'icon');
+            document.getElementById('btn-mode-text').classList.toggle('active', mode === 'text');
+            document.getElementById('icon-pack-container').style.display = mode === 'icon' ? 'grid' : 'none';
+            document.getElementById('tab-content-text').style.display = mode === 'text' ? 'grid' : 'none';
+            
+            if (mode === 'text') {
+                document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
+                selectedSticker = { type: 'text-only' }; 
+                setMode('stamp');
+            } else if (selectedSticker && (selectedSticker.type === 'text-only' || selectedSticker.type === 'custom-text')) {
+                selectedSticker = null; 
+            }
+        }
+
+        function clearStickers() { if(confirm("지도 위의 스티커를 모두 지울까요?")) { stickers = []; redraw(); } }
+        function toggleText() { showText = !showText; const btn = document.getElementById('toggle-text'); btn.classList.toggle('active', showText); btn.innerText = showText ? "✅ 기호 라벨 표시" : "❌ 라벨 숨김"; redraw(); }
+
+        const cvs = document.getElementById('mapCanvas'); const ctx = cvs.getContext('2d');
+        const msg = document.getElementById('loading-msg'); const viewport = document.getElementById('map-viewport');
+        
+        let loadedLayers = {};
+        let scale = 1, panX = 0, panY = 0;
+        let isDraggingMap = false, startX, startY;
+        let currentMode = 'pan'; 
+        
+        let draggingSticker = null;
+        let stickerMoved = false;
+
+        function loadMap() {
+            const mapPrefix = document.getElementById('map-region').value;
+            const config = mapConfigs[mapPrefix];
+            
+            buildUI(mapPrefix);
+            msg.style.display = 'block';
+            document.getElementById('loading-sub').innerText = `주제도 데이터를 가져오고 있습니다.`;
+            
+            loadedLayers = {};
+            let toLoad = [{ id: 'base', name: config.base.name }, ...config.layers];
+            let loadedCount = 0;
+
+            toLoad.forEach(layer => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                const url = `${GITHUB_BASE_URL}${mapPrefix}-${layer.name}${config.fileSuffix}`;
+                
+                img.onload = () => { loadedLayers[layer.id] = img; loadedCount++; if(loadedCount === toLoad.length) { msg.style.display = 'none'; resetZoom(); } };
+                img.onerror = () => { loadedCount++; console.error(`로드 실패: ${url}`); if(loadedCount === toLoad.length) { msg.style.display = 'none'; resetZoom(); } };
+                img.src = url;
+            });
+            stickers = []; 
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('mode-pan').classList.toggle('active', mode === 'pan');
+            document.getElementById('mode-stamp').classList.toggle('active', mode === 'stamp');
+            viewport.classList.toggle('stamp-mode', mode === 'stamp');
+        }
+
+        function zoom(factor) {
+            const newScale = Math.min(Math.max(0.1, scale * factor), 5);
+            const cx = cvs.width / 2; const cy = cvs.height / 2;
+            panX = cx - (cx - panX) * (newScale / scale); panY = cy - (cy - panY) * (newScale / scale);
+            scale = newScale; redraw();
+        }
+
+        function resetZoom() {
+            let refImg = loadedLayers['base'] || Object.values(loadedLayers)[0];
+            if (!refImg || !refImg.naturalWidth) return;
+            const w = refImg.naturalWidth; const h = refImg.naturalHeight;
+            scale = Math.min(cvs.width / w, cvs.height / h) * 0.95;
+            panX = (cvs.width - w * scale) / 2; panY = (cvs.height - h * scale) / 2;
+            redraw();
+        }
+
+        window.addEventListener('resize', () => { cvs.width = viewport.clientWidth; cvs.height = viewport.clientHeight; resetZoom(); });
+
+        cvs.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const mx = e.clientX - cvs.getBoundingClientRect().left; const my = e.clientY - cvs.getBoundingClientRect().top;
+            const factor = e.deltaY < 0 ? 1.1 : 0.9;
+            const newScale = Math.min(Math.max(0.1, scale * factor), 5);
+            panX = mx - (mx - panX) * (newScale / scale); panY = my - (my - panY) * (newScale / scale);
+            scale = newScale; redraw();
+        });
+
+        const pointerDown = (e) => {
+            const mx = (e.clientX || e.touches[0].clientX) - cvs.getBoundingClientRect().left;
+            const my = (e.clientY || e.touches[0].clientY) - cvs.getBoundingClientRect().top;
+            const ss = parseFloat(document.getElementById('sticker-size-slider').value) || 1;
+
+            for (let i = stickers.length - 1; i >= 0; i--) {
+                const s = stickers[i];
+                const sx = s.realX * scale + panX; const sy = s.realY * scale + panY;
+                
+                if (hoverIdx === i && Math.hypot(mx - (sx + (18 * ss)), my - (sy - (18 * ss))) < 25) {
+                    stickers.splice(i, 1); hoverIdx = -1; redraw(); return; 
+                }
+            }
+
+            if (hoverIdx !== -1) {
+                draggingSticker = stickers[hoverIdx]; stickerMoved = false; return; 
+            }
+
+            if (currentMode === 'pan') {
+                isDraggingMap = true; startX = mx - panX; startY = my - panY;
+            } else if (currentMode === 'stamp' && selectedSticker) {
+                const rx = (mx - panX) / scale; const ry = (my - panY) / scale;
+                
+                if (selectedSticker.type === 'text-only') {
+                    stickers.push({ type: 'text-only', text: selectedSticker.text, realX: rx, realY: ry });
+                    redraw();
+                } else if (selectedSticker.type === 'custom-text') {
+                    const txt = prompt("지도에 표시할 이름을 직접 입력하세요:");
+                    if (txt && txt.trim() !== '') {
+                        stickers.push({ type: 'text-only', text: txt.trim(), realX: rx, realY: ry });
+                        redraw();
+                    }
+                } else {
+                    stickers.push({ type: 'icon', e: selectedSticker.e, t: selectedSticker.t, realX: rx, realY: ry });
+                    redraw();
+                }
+            }
+        };
+
+        const pointerMove = (e) => {
+            const mx = (e.clientX || e.touches[0].clientX) - cvs.getBoundingClientRect().left;
+            const my = (e.clientY || e.touches[0].clientY) - cvs.getBoundingClientRect().top;
+            const ss = parseFloat(document.getElementById('sticker-size-slider').value) || 1;
+
+            if (draggingSticker) {
+                e.preventDefault(); stickerMoved = true;
+                draggingSticker.realX = (mx - panX) / scale; draggingSticker.realY = (my - panY) / scale;
+                redraw(); return;
+            }
+
+            let found = -1;
+            for (let i = stickers.length - 1; i >= 0; i--) {
+                const sx = stickers[i].realX * scale + panX; const sy = stickers[i].realY * scale + panY;
+                if (Math.hypot(mx - sx, my - sy) < (30 * ss)) { found = i; break; }
+            }
+            if (hoverIdx !== found) { hoverIdx = found; redraw(); }
+
+            if (isDraggingMap && currentMode === 'pan') {
+                e.preventDefault(); panX = mx - startX; panY = my - startY; redraw();
+            }
+        };
+
+        const pointerUp = () => { 
+            if (draggingSticker && !stickerMoved) {
+                const s = draggingSticker;
+                const currentName = s.type === 'text-only' ? s.text : s.t;
+                const newName = prompt("이 장소의 이름을 변경하세요:", currentName);
+                if (newName !== null && newName.trim() !== "") {
+                    if (s.type === 'text-only') s.text = newName.trim(); else s.t = newName.trim();
+                    redraw();
+                }
+            }
+            isDraggingMap = false; draggingSticker = null;
+        };
+
+        cvs.addEventListener('mousedown', pointerDown); window.addEventListener('mousemove', pointerMove); window.addEventListener('mouseup', pointerUp);
+        cvs.addEventListener('touchstart', e => { if(currentMode==='pan' || hoverIdx !== -1) e.preventDefault(); pointerDown(e); }, {passive: false});
+        cvs.addEventListener('touchmove', e => { if(isDraggingMap || draggingSticker) e.preventDefault(); pointerMove(e); }, {passive: false});
+        window.addEventListener('touchend', pointerUp);
+
+        function redraw() {
+            ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+            let refImg = loadedLayers['base'] || Object.values(loadedLayers)[0];
+            if (!refImg || !refImg.naturalWidth) return;
+            const w = refImg.naturalWidth; const h = refImg.naturalHeight;
+
+            ctx.save(); ctx.translate(panX, panY); ctx.scale(scale, scale);
+            
+            const config = mapConfigs[document.getElementById('map-region').value];
+            const renderQueue = ['base', ...config.layers.map(l=>l.id)];
+            
+            renderQueue.forEach(key => {
+                if (loadedLayers[key] && loadedLayers[key].naturalWidth) {
+                    const chk = document.getElementById(`chk-${key}`);
+                    if (chk && chk.checked) {
+                        ctx.globalAlpha = parseFloat(document.getElementById(`op-${key}`).value);
+                        ctx.drawImage(loadedLayers[key], 0, 0, w, h);
+                    }
+                }
+            });
+            ctx.restore();
+
+            const ss = parseFloat(document.getElementById('sticker-size-slider').value) || 1;
+
+            stickers.forEach((s, i) => {
+                const sx = s.realX * scale + panX; const sy = s.realY * scale + panY;
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                
+                if (s.type === 'text-only') {
+                    ctx.font = `bold ${22 * ss}px 'Jua'`; ctx.fillStyle = "#154360";
+                    ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 5 * ss;
+                    ctx.strokeText(s.text, sx, sy); ctx.fillText(s.text, sx, sy);
+                } else {
+                    ctx.font = `${34 * ss}px sans-serif`; ctx.fillText(s.e, sx, sy);
+                    if (showText && s.t) {
+                        ctx.font = `bold ${15 * ss}px 'Jua'`; ctx.fillStyle = "#2C3E50";
+                        ctx.strokeStyle = "white"; ctx.lineWidth = 4 * ss;
+                        ctx.strokeText(s.t, sx, sy + (25 * ss)); ctx.fillText(s.t, sx, sy + (25 * ss));
+                    }
+                }
+
+                if (hoverIdx === i || draggingSticker === s) {
+                    ctx.fillStyle = "#E74C3C"; ctx.beginPath(); ctx.arc(sx+(18*ss), sy-(18*ss), 14*ss, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "white"; ctx.font = `bold ${14*ss}px sans-serif`; ctx.fillText("X", sx+(18*ss), sy-(17*ss));
+                }
+            });
+
+            if (stickers.length > 0 && showText) drawLegend();
+        }
+
+        function drawLegend() {
+            const u = []; stickers.forEach(s => { if(s.type === 'icon' && s.t && !u.find(x => x.t === s.t)) u.push(s); });
+            if (u.length === 0 || !showText) return;
+            const w = 130, h = 45 + (u.length * 30), lx = 20, ly = 20;
+            ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.strokeStyle = "#D5D8DC"; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.roundRect(lx, ly, w, h, 15); ctx.fill(); ctx.stroke(); 
+            ctx.fillStyle = "#117A65"; ctx.font = "20px 'Jua'"; ctx.textAlign = "center"; ctx.fillText("🔍 기호 범례", lx + w/2, ly + 25);
+            ctx.textAlign = "left"; ctx.fillStyle = "#4A4A4A";
+            u.forEach((sym, i) => {
+                ctx.font = "18px sans-serif"; ctx.fillText(sym.e, lx + 15, ly + 55 + (i * 30));
+                ctx.font = "16px 'Jua'"; ctx.fillText(sym.t, lx + 45, ly + 55 + (i * 30));
+            });
+        }
+
+        function handleAction(type) {
+            const tempScale = scale; const tempPanX = panX; const tempPanY = panY;
+            scale = 1; panX = 0; panY = 0; hoverIdx = -1; draggingSticker = null;
+            redraw();
+
+            cvs.toBlob(blob => {
+                scale = tempScale; panX = tempPanX; panY = tempPanY; redraw();
+                
+                if (type === 'submit') {
+                    if (window.parent && window.parent.handleMapSave) {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(blob);
+                        reader.onloadend = function() {
+                            window.parent.handleMapSave(reader.result, "지도 겹치기");
+                        }
+                    } else {
+                        alert("런처(메인화면)를 통해서 접속해야 제출이 가능합니다.");
+                    }
+                } else if (type === 'download') {
+                    const mapName = document.getElementById('map-region').value;
+                    const url = URL.createObjectURL(blob); 
+                    const a = document.createElement('a'); 
+                    a.href = url; a.download = `${mapName}_분석.jpg`; 
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); 
+                    URL.revokeObjectURL(url);
+                }
+            }, 'image/jpeg', 0.95);
+        }
+
+        window.onload = () => { 
+            document.getElementById('help-modal').style.display = 'flex'; 
+            document.fonts.load('10pt "Jua"').then(() => { 
+                cvs.width = viewport.clientWidth; cvs.height = viewport.clientHeight; loadMap(); 
+            }); 
+        };
+    </script>
+</body>
+</html>
