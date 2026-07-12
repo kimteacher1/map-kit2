@@ -26,8 +26,8 @@
         .file-upload-btn { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #EBF5FB; color: var(--primary-hover); border: 2px solid var(--primary); font-weight: bold; }
         #map-upload { display: none; }
 
-        .btn-help { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #FEF9E7; color: #D35400; border: none; font-family: 'Jua', sans-serif; }
-        .btn-back { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #E74C3C; color: white; border: none; font-family: 'Jua', sans-serif; }
+        .btn-help { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #FEF9E7; color: #D35400; border: none; font-family: 'Jua', sans-serif; font-weight: bold; }
+        .btn-back { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #E74C3C; color: white; border: none; font-family: 'Jua', sans-serif; font-weight: bold; }
 
         main { flex: 1; display: flex; overflow: hidden; padding: 15px; gap: 15px; }
         #map-stage { flex: 3; position: relative; background: white; border-radius: var(--radius-box); box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 10px; }
@@ -46,16 +46,19 @@
         .grid-2 { grid-template-columns: 1fr 1fr; }
         
         .tool-btn { padding: 12px 4px; border: 2px solid var(--border); border-radius: 14px; background: white; cursor: pointer; font-size: 1.1rem; font-family: 'Jua', sans-serif; color: var(--text); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        .tool-btn.selected { border-color: var(--primary); background: #EBF5FB; color: var(--primary-hover); }
+        .tool-btn.selected { border-color: var(--primary); background: #EBF5FB; color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(93, 173, 226, 0.2);}
+        .tool-btn:hover { background: #F8F9F9; }
         .action-btn { background: #F4F6F7; border-color: #D5D8DC; }
         
-        .slider-container { display: flex; flex-direction: column; gap: 6px; background: #F8F9F9; padding: 12px 15px; border-radius: 14px; border: 1px solid var(--border); }
-        .slider-label-group { display: flex; justify-content: space-between; font-size: 1rem; }
-        .slider-container input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+        .slider-container { display: flex; flex-direction: column; gap: 6px; background: #F8F9F9; padding: 12px 15px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 8px;}
+        .slider-label-group { display: flex; justify-content: space-between; font-size: 1rem; color: var(--text);}
+        .slider-container input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; margin-top: 4px;}
 
         footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; gap: 10px;}
         #share-btn { background: #FF9A9E; color: white; border: none; padding: 12px 30px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4); }
-        #pipeline-btn { background: #5DADE2; color: white; border: none; padding: 12px 30px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; box-shadow: 0 4px 15px rgba(93,173,226,0.4); display: none; }
+        #share-btn:hover { background: #FF858A; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6); }
+        #pipeline-btn { background: #5DADE2; color: white; border: none; padding: 12px 30px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; box-shadow: 0 4px 15px rgba(93,173,226,0.4); display: none; transition: 0.2s; }
+        #pipeline-btn:hover { background: #3498DB; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(93,173,226,0.6); }
     </style>
 </head>
 <body>
@@ -76,7 +79,7 @@
     <header>
         <div class="menu-group">
             <h1 style="margin:0; font-size:1.7rem; color:var(--primary);">🗺️ 스크린샷 백지도 메이커</h1>
-            <label for="map-upload" class="file-upload-btn">📂 네이버/다음 지도 캡처본 선택</label>
+            <label for="map-upload" class="file-upload-btn">📂 지도 사진 불러오기</label>
             <input type="file" id="map-upload" accept="image/*" onchange="handleImageUpload(event)">
             <button class="btn-help" onclick="document.getElementById('help-modal').style.display='flex'">💡 사용법</button>
             <button class="btn-back" onclick="if(window.parent && window.parent.closeApp) window.parent.closeApp(); else history.back();">🔙 메뉴로 돌아가기</button>
@@ -86,15 +89,26 @@
     <main>
         <div id="map-stage">
             <div id="upload-guide-msg">
-                <span style="font-size: 4rem;">📸</span><br>
-                지도 캡처 스크린샷 파일을 불러와 주세요.
+                <span style="font-size: 3rem;">📷</span><br><br>
+                <span style="font-size: 1.4rem; color: #4A4A4A;">지도 화면을 캡처한 이미지를 불러와 주세요.</span><br><br>
+                <span style="font-size: 1.1rem; color: #BDC3C7;">──────────────────────</span><br><br>
+                <div style="text-align: left; font-size: 1.2rem; line-height: 1.8; display: inline-block; font-family: 'Jua', sans-serif; color: #4A4A4A;">
+                    <span style="font-size: 1.4rem; color: var(--primary);">📖 백지도 메이커 사용 방법</span><br><br>
+                    ① 네이버 지도에서 원하는 지역을 검색합니다.<br>
+                    ② 지도 설정에서 '지적편집도'를 선택합니다.<br>
+                    ③ 원하는 범위를 화면에 맞춘 뒤 캡처합니다.<br>
+                    ④ 캡처한 이미지를 불러옵니다.<br>
+                    ⑤ 자동으로 백지도가 완성됩니다.<br><br>
+                    <span style="color: #D35400;">💡 TIP</span><br>
+                    '지적편집도'로 캡처하면 가장 선명하고 깔끔한 백지도를 만들 수 있습니다.
+                </div>
             </div>
-            <div id="loading-msg">선만 남기고 깨끗하게 정제하는 중입니다... 🚀</div>
+            <div id="loading-msg">지도를 선만 남기고 깨끗하게 지우는 중이에요!<br><span style="font-size:1rem; color:#7F8C8D;">잠시만 기다려주세요 🚀</span></div>
             <canvas id="viewCanvas"></canvas>
         </div>
 
         <aside>
-            <div id="edit-control-panel" style="display:none; flex:1; flex-direction:column; gap:15px;">
+            <div id="edit-control-panel" style="display:flex; flex:1; flex-direction:column; gap:15px;">
                 <div class="btn-grid grid-2">
                     <button class="tool-btn action-btn" onclick="undo()">↩️ 취소</button>
                     <button class="tool-btn action-btn" onclick="clearDrawing()">🗑️ 리셋</button>
@@ -103,23 +117,36 @@
                 <div class="tool-section">
                     <h3>✨ 외곽선 선명도 조절 ✨</h3>
                     <div class="slider-container">
-                        <input type="range" id="threshold-slider" min="10" max="120" value="40" oninput="updateFilter()">
+                        <div class="slider-label-group">
+                            <label>🎚️ 외곽선 민감도</label>
+                            <span id="threshold-val">40</span>
+                        </div>
+                        <input type="range" id="threshold-slider" min="10" max="120" step="1" value="40" oninput="updateFilter()">
                     </div>
                 </div>
 
                 <div class="tool-section" style="flex:1; display:flex; flex-direction:column; gap:5px;">
                     <h3>🧽 글씨 지우기 & 보정 연필</h3>
-                    <div class="btn-grid grid-2">
+                    <div class="btn-grid grid-2" style="margin-top: 5px;">
                         <button class="tool-btn selected" id="tool-eraser" onclick="setTool('eraser')">🧽 글씨 지우기</button>
                         <button class="tool-btn" id="tool-pencil" onclick="setTool('pencil')">✏️ 테두리 연필</button>
                     </div>
                     <div class="slider-container">
-                        <div class="slider-label-group"><label>🖌️ 굵기</label></div>
-                        <input type="range" id="brush-slider" min="3" max="50" value="15">
+                        <div class="slider-label-group">
+                            <label>🖌️ 브러시 굵기</label>
+                            <span id="brush-val">15</span>
+                        </div>
+                        <input type="range" id="brush-slider" min="3" max="50" step="1" value="15" oninput="document.getElementById('brush-val').innerText=this.value">
                     </div>
                     <div class="slider-container" id="pencil-opacity-container" style="opacity:0.5;">
-                        <div class="slider-label-group"><label>🖤 연필 진하기</label></div>
-                        <input type="range" id="pencil-opacity-slider" min="10" max="100" step="5" value="100">
+                        <div class="slider-label-group">
+                            <label>🖤 연필 진하기</label>
+                            <span id="pencil-opacity-val">100%</span>
+                        </div>
+                        <input type="range" id="pencil-opacity-slider" min="10" max="100" step="5" value="100" oninput="document.getElementById('pencil-opacity-val').innerText=this.value+'%'">
+                    </div>
+                    <div style="background: #F4F6F7; border-radius: 14px; padding: 15px; font-size: 0.95rem; line-height: 1.5; color: #7F8C8D; text-align: center; margin-top: auto;">
+                        💡 <b>꿀팁!</b><br>지우개로 불필요한 글씨를 지운 뒤 슬라이더를 움직여도 내가 지운 구역은 안전하게 유지돼요!
                     </div>
                 </div>
             </div>
@@ -128,7 +155,7 @@
 
     <footer>
         <button id="share-btn" style="display:none;" onclick="downloadCanvas()">📸 완성된 백지도 저장하기</button>
-        <button id="pipeline-btn" onclick="launchPipeline()">🚀 이 지도로 바로 그리기 시작!</button>
+        <button id="pipeline-btn" style="display:none;" onclick="launchPipeline()">🚀 이 지도로 바로 그리기 시작!</button>
     </footer>
 
     <script>
@@ -146,7 +173,7 @@
         let isDrawing = false; let lastX=0; let lastY=0;
         let historyStack = []; let historyStep = -1;
 
-        window.onload = () => { document.getElementById('help-modal').style.display='flex'; };
+        window.onload = () => { setTool('eraser'); };
 
         function handleImageUpload(e) {
             const file = e.target.files[0]; if(!file) return;
@@ -172,7 +199,6 @@
                     baseCtx.drawImage(imgElement, 0, 0, w, h);
                     originalImgData = baseCtx.getImageData(0, 0, w, h);
                     
-                    document.getElementById('edit-control-panel').style.display = 'flex';
                     document.getElementById('pipeline-btn').style.display = 'inline-block';
                     document.getElementById('share-btn').style.display = 'inline-block';
                     
@@ -190,6 +216,7 @@
         function updateFilter() {
             if(!originalImgData) return;
             const th = parseInt(document.getElementById('threshold-slider').value);
+            document.getElementById('threshold-val').innerText = th;
             const w = baseCanvas.width; const h = baseCanvas.height;
             const imgData = baseCtx.createImageData(w, h);
             const src = originalImgData.data; const dst = imgData.data;
