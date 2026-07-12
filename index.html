@@ -59,24 +59,35 @@
         
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.8); z-index: 10000; justify-content: center; align-items: center; font-size: 1.5rem; color: var(--primary-color); text-align: center; padding: 20px; flex-direction: column; gap: 15px;}
 
+        /* 관리자 패널 스타일 (명렬표 엑셀 형식) */
         #admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
         .admin-content { background: white; padding: 30px; border-radius: 20px; width: 95%; max-width: 1100px; height: 85vh; display: flex; flex-direction: column; position: relative; }
         .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E5E7E9; padding-bottom: 15px; margin-bottom: 10px; }
         .admin-header h2 { margin: 0; color: var(--primary-color); font-size: 1.5rem;}
         .close-admin { font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
         
-        .admin-tabs { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .admin-tab { padding: 10px 20px; background: #F0F3F4; border: none; border-radius: 12px; font-family: 'Jua', sans-serif; font-size: 1.1rem; cursor: pointer; color: #7F8C8D; }
+        .admin-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .admin-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+        .admin-tab { padding: 8px 16px; background: #F0F3F4; border: none; border-radius: 10px; font-family: 'Jua', sans-serif; font-size: 1.05rem; cursor: pointer; color: #7F8C8D; }
         .admin-tab.active { background: var(--primary-color); color: white; }
+        
+        #school-filter { padding: 8px; border-radius: 10px; border: 2px solid var(--primary-color); outline: none; font-family: 'Jua', sans-serif; font-size: 1.05rem; color: var(--text-color); cursor: pointer; background: white;}
 
-        .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; overflow-y: auto; flex: 1; padding-right: 5px; }
-        .admin-card-item { border: 2px solid #E5E7E9; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; background: #FDFDFD; }
-        .admin-img { width: 100%; height: 200px; object-fit: contain; background: #F0F3F4; border-bottom: 2px solid #E5E7E9; }
-        .admin-info { padding: 15px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
-        .admin-name { font-size: 1.2rem; font-weight: bold; color: #4A4A4A; }
-        .admin-lesson { font-size: 1rem; color: #7F8C8D; line-height: 1.4; background: #FEF9E7; padding: 10px; border-radius: 8px; overflow-wrap: break-word; }
-        .admin-chat-log { white-space: pre-wrap; font-family: sans-serif; font-size: 0.95rem; line-height: 1.5; background: #F8F9F9; padding: 15px; border-radius: 8px; color: #2C3E50; max-height: 300px; overflow-y: auto; border: 1px solid #E5E7E9; }
+        .table-container { flex: 1; overflow-y: auto; background: white; border: 2px solid #E5E7E9; border-radius: 12px; }
+        .admin-table { width: 100%; border-collapse: collapse; text-align: center; }
+        .admin-table th { background: #F0F3F4; padding: 12px; font-size: 1.1rem; color: #34495E; position: sticky; top: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .admin-table td { padding: 12px; border-bottom: 1px solid #E5E7E9; font-size: 1.05rem; color: #4A4A4A;}
+        .admin-table tbody tr { cursor: pointer; transition: background 0.2s; }
+        .admin-table tbody tr:hover { background: #EBF5FB; }
 
+        /* 학생 팝업 상세 모달 */
+        #admin-detail-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 10001; justify-content: center; align-items: center; }
+        .detail-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column;}
+        .close-detail { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
+        #detail-title { color: var(--primary-color); margin-top: 0; border-bottom: 2px dashed #E5E7E9; padding-bottom: 10px;}
+        .admin-img { width: 100%; max-height: 500px; object-fit: contain; background: #F0F3F4; border-radius: 12px; margin-bottom: 15px;}
+        .admin-chat-log { white-space: pre-wrap; font-family: sans-serif; font-size: 1rem; line-height: 1.5; background: #F8F9F9; padding: 20px; border-radius: 12px; color: #2C3E50; border: 1px solid #E5E7E9; text-align: left; }
+        #detail-lesson { background: #FEF9E7; padding: 15px; border-radius: 12px; font-size: 1.1rem; color: #4A4A4A; text-align: left; border: 1px solid #F9E79F;}
     </style>
 </head>
 <body>
@@ -153,7 +164,7 @@
             </div>
             <div class="app-card admin-card" onclick="openAdminPrompt()">
                 <div class="app-icon">⚙️</div>
-                <h2>선생님<br>관리자</h2>
+                <h2>교사용<br>페이지</h2>
             </div>
         </div>
         
@@ -164,7 +175,6 @@
         <iframe id="app-frame" src=""></iframe>
     </div>
 
-    <!-- 데이터 전송 모달 -->
     <div id="lesson-modal">
         <div class="modal-content">
             <h2 id="modal-title" style="color: var(--primary-color); margin-top:0;">✨ 오늘의 배움 기록하기</h2>
@@ -182,44 +192,76 @@
         <div>선생님의 구글 시트로 전송 중입니다...</div>
     </div>
 
-    <!-- 선생님 전용 관리자 패널 -->
+    <!-- 선생님 전용 관리자 패널 (엑셀 명렬표 스타일) -->
     <div id="admin-modal">
         <div class="admin-content">
             <div class="admin-header">
-                <h2>🕵️ 선생님 전용 통합 데이터 갤러리</h2>
+                <h2>🕵️ 교사용 데이터 갤러리</h2>
                 <button class="close-admin" onclick="document.getElementById('admin-modal').style.display='none'">X</button>
             </div>
             
-            <div class="admin-tabs">
-                <button class="admin-tab active" onclick="filterAdmin('전체')">전체 보기</button>
-                <button class="admin-tab" onclick="filterAdmin('백지도 그리기')">백지도 그리기</button>
-                <button class="admin-tab" onclick="filterAdmin('지도 겹치기')">지도 겹치기</button>
-                <button class="admin-tab" onclick="filterAdmin('맵봇 챗봇')">챗봇 대화</button>
-                <button class="admin-tab" onclick="filterAdmin('배움 공책')">배움 노트</button>
+            <div class="admin-controls">
+                <div class="admin-tabs">
+                    <button class="admin-tab active" onclick="setProgramFilter('전체')">전체 보기</button>
+                    <button class="admin-tab" onclick="setProgramFilter('백지도 그리기')">백지도 그리기</button>
+                    <button class="admin-tab" onclick="setProgramFilter('지도 겹치기')">지도 겹치기</button>
+                    <button class="admin-tab" onclick="setProgramFilter('맵봇 챗봇')">챗봇 대화</button>
+                    <button class="admin-tab" onclick="setProgramFilter('배움 공책')">배움 노트</button>
+                </div>
+                <select id="school-filter" onchange="renderAdminTable()">
+                    <option value="all">🏫 모든 학교 보기</option>
+                </select>
             </div>
 
             <div id="admin-loading" style="text-align:center; font-size: 1.5rem; color: var(--primary-color); padding: 40px;">
                 학생들의 데이터를 구글 시트에서 불러오고 있습니다... 🚀
             </div>
-            <div class="admin-grid" id="admin-grid" style="display:none;"></div>
+            
+            <div class="table-container" id="admin-grid" style="display:none;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>제출일시</th>
+                            <th>학교</th>
+                            <th>학년/반/번호</th>
+                            <th>이름</th>
+                            <th>과제명</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 학생 개별 팝업창 (모달) -->
+    <div id="admin-detail-modal">
+        <div class="detail-box">
+            <button class="close-detail" onclick="document.getElementById('admin-detail-modal').style.display='none'">X</button>
+            <h2 id="detail-title">학생 결과물 상세</h2>
+            <div id="detail-content" style="margin-top:15px; text-align:center;"></div>
+            <div id="detail-lesson"></div>
         </div>
     </div>
 
     <script>
         // ⚠️ 여기에 구글 앱스 스크립트 배포 URL을 넣으세요!
-        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzYJmdnQJByBpNFko7mJnegxTX3rTw8b2l2N1ttIKOhQ4ETbD6RSEXywMDPmTut5qzAxw/exec"; 
+        const GOOGLE_WEB_APP_URL = "YOUR_NEW_WEB_APP_URL_HERE"; 
 
         let studentData = {};
         let currentMapData = { base64: "", appName: "", extraText: "" };
+        
         let adminFullData = [];
+        let currentProgFilter = '전체';
 
         window.addEventListener('load', () => {
             sessionStorage.removeItem('customMap');
             sessionStorage.removeItem('userInfo');
+            sessionStorage.removeItem('mapbotHistory'); // 챗봇 기록 초기화
         });
 
         function openAdminPrompt() {
-            const pwd = prompt("관리자 비밀번호를 입력하세요:");
+            const pwd = prompt("교사용 페이지 접속 비밀번호를 입력하세요:");
             if (pwd === "12345678") {
                 openAdminPanel();
             } else if (pwd !== null) {
@@ -335,12 +377,15 @@
             });
         }
 
-        // --- 관리자 패널 로직 ---
+        // --- 교사용 관리자 패널 로직 ---
         function openAdminPanel() {
             document.getElementById('admin-modal').style.display = 'flex';
             document.getElementById('admin-loading').style.display = 'block';
             document.getElementById('admin-grid').style.display = 'none';
-            document.getElementById('admin-grid').innerHTML = '';
+            
+            // 데이터 초기화
+            const tbody = document.getElementById('admin-tbody');
+            tbody.innerHTML = '';
 
             fetch(GOOGLE_WEB_APP_URL)
                 .then(res => res.json())
@@ -348,7 +393,8 @@
                     document.getElementById('admin-loading').style.display = 'none';
                     if(res.status === 'success') {
                         adminFullData = res.data;
-                        filterAdmin('전체');
+                        populateSchoolFilter();
+                        setProgramFilter('전체');
                     } else {
                         document.getElementById('admin-loading').innerHTML = `❌ 데이터 로드 실패. 앱스 스크립트 URL을 확인하세요.`;
                         document.getElementById('admin-loading').style.display = 'block';
@@ -360,51 +406,103 @@
                 });
         }
 
-        function filterAdmin(programFilter) {
+        function populateSchoolFilter() {
+            const select = document.getElementById('school-filter');
+            select.innerHTML = '<option value="all">🏫 모든 학교 보기</option>';
+            
+            const schools = [...new Set(adminFullData.map(d => d.school))].filter(Boolean);
+            schools.forEach(sch => {
+                const opt = document.createElement('option');
+                opt.value = sch; 
+                opt.innerText = `🏫 ${sch}초등학교`;
+                select.appendChild(opt);
+            });
+        }
+
+        function setProgramFilter(prog) {
+            currentProgFilter = prog;
             document.querySelectorAll('.admin-tab').forEach(tab => {
                 tab.classList.remove('active');
-                if(tab.innerText === programFilter || (programFilter === '전체' && tab.innerText === '전체 보기')) {
+                if(tab.innerText === prog || (prog === '전체' && tab.innerText === '전체 보기')) {
                     tab.classList.add('active');
-                } else if (programFilter === '맵봇 챗봇' && tab.innerText === '챗봇 대화') {
+                } else if (prog === '맵봇 챗봇' && tab.innerText === '챗봇 대화') {
                     tab.classList.add('active');
-                } else if (programFilter === '배움 공책' && tab.innerText === '배움 노트') {
+                } else if (prog === '배움 공책' && tab.innerText === '배움 노트') {
                     tab.classList.add('active');
                 }
             });
+            renderAdminTable();
+        }
 
-            const grid = document.getElementById('admin-grid');
-            grid.innerHTML = '';
-            grid.style.display = 'grid';
+        function renderAdminTable() {
+            const tbody = document.getElementById('admin-tbody');
+            tbody.innerHTML = '';
+            document.getElementById('admin-grid').style.display = 'block';
 
-            const filteredData = programFilter === '전체' ? adminFullData : adminFullData.filter(d => d.program === programFilter);
+            const schoolFilter = document.getElementById('school-filter').value;
+            
+            let filtered = adminFullData;
+            
+            // 1. 프로그램명 필터
+            if(currentProgFilter !== '전체') {
+                filtered = filtered.filter(d => d.program === currentProgFilter);
+            }
+            
+            // 2. 학교 필터
+            if(schoolFilter !== 'all') {
+                filtered = filtered.filter(d => d.school === schoolFilter);
+            }
 
-            if(filteredData.length === 0) {
-                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; color:#95A5A6; padding:40px;">제출된 데이터가 없습니다.</div>`;
+            if(filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="padding:30px; color:#95A5A6;">조건에 맞는 제출 데이터가 없습니다.</td></tr>`;
                 return;
             }
 
-            filteredData.forEach(item => {
-                const isChat = item.program === '맵봇 챗봇';
-                const card = document.createElement('div');
-                card.className = 'admin-card-item';
+            filtered.forEach((item, idx) => {
+                const tr = document.createElement('tr');
                 
-                let mediaHTML = '';
-                if(isChat) {
-                    mediaHTML = `<div class="admin-chat-log">${item.lessonText || '대화 내용 없음'}</div>`;
-                } else {
-                    mediaHTML = `<img src="${item.imageBase64}" class="admin-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">`;
+                // 날짜 포맷 (예: 10/24 14:30)
+                let dateStr = "";
+                if(item.timestamp) {
+                    const d = new Date(item.timestamp);
+                    dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                 }
 
-                card.innerHTML = `
-                    ${mediaHTML}
-                    <div class="admin-info">
-                        <div class="admin-name">🧑‍🎓 ${item.grade} ${item.classNum}반 ${item.studentNum}번 ${item.name}</div>
-                        <div style="font-size:0.85rem; color:var(--primary-color); font-weight:bold;">✨ 과제: ${item.program || '알 수 없음'}</div>
-                        ${!isChat ? `<div class="admin-lesson">"${item.lessonText || '내용 없음'}"</div>` : ''}
-                    </div>
+                tr.innerHTML = `
+                    <td>${dateStr}</td>
+                    <td>${item.school || '-'}초</td>
+                    <td>${item.grade}-${item.classNum}-${item.studentNum}</td>
+                    <td style="font-weight:bold; color:var(--primary-color);">${item.name || '무명'}</td>
+                    <td><span style="background:#EBF5FB; padding:4px 10px; border-radius:10px; font-size:0.9rem;">${item.program || '알 수 없음'}</span></td>
                 `;
-                grid.appendChild(card);
+                
+                // 줄 클릭 시 상세 팝업 오픈
+                tr.onclick = () => openAdminDetail(item);
+                tbody.appendChild(tr);
             });
+        }
+
+        function openAdminDetail(item) {
+            const modal = document.getElementById('admin-detail-modal');
+            const title = document.getElementById('detail-title');
+            const content = document.getElementById('detail-content');
+            const lesson = document.getElementById('detail-lesson');
+
+            title.innerText = `🧑‍🎓 ${item.grade}학년 ${item.classNum}반 ${item.studentNum}번 ${item.name} (${item.program})`;
+            
+            content.innerHTML = '';
+            lesson.style.display = 'none';
+
+            if(item.program === '맵봇 챗봇') {
+                content.innerHTML = `<div class="admin-chat-log">${item.lessonText || '대화 내용 없음'}</div>`;
+            } else {
+                content.innerHTML = `<img src="${item.imageBase64}" class="admin-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">`;
+                if(item.lessonText && item.lessonText.trim() !== '') {
+                    lesson.innerText = `📝 배움 한 줄: "${item.lessonText}"`;
+                    lesson.style.display = 'block';
+                }
+            }
+            modal.style.display = 'flex';
         }
     </script>
 </body>

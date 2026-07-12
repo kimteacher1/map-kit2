@@ -76,18 +76,37 @@
             if(ui) {
                 userName = JSON.parse(ui).name;
             }
+            
+            // 기존에 대화하던 내용이 있으면 불러오기
+            const savedHistory = sessionStorage.getItem('mapbotHistory');
+            if (savedHistory) {
+                const parsed = JSON.parse(savedHistory);
+                if (parsed.length > 0) {
+                    parsed.forEach(msg => {
+                        if(msg.role === 'user') appendUserMsg(msg.text, false);
+                        else appendBotMsg(msg.text, false, false);
+                    });
+                    return;
+                }
+            }
+            
             appendBotMsg(`안녕? ${userName}야. 만나서 반가워! 🤖<br>나는 너의 사회 탐험을 도울 <b>맵봇(Map-Bot)</b>이야.<br>사회 학습 중 어떤 것이 궁금해서 날 찾아왔니?`);
         };
 
-        function appendUserMsg(txt) {
-            chatHistory.push({ role: 'user', text: txt });
+        function saveHistory() {
+            sessionStorage.setItem('mapbotHistory', JSON.stringify(chatHistory));
+        }
+
+        function appendUserMsg(txt, save = true) {
+            if(save) chatHistory.push({ role: 'user', text: txt });
             const box = document.getElementById('chat-box');
             box.innerHTML += `<div class="msg-wrap user"><div class="msg-bubble">${txt}</div></div>`;
             box.scrollTop = box.scrollHeight;
+            if(save) saveHistory();
         }
 
-        function appendBotMsg(txt, isTemp = false) {
-            if(!isTemp) chatHistory.push({ role: 'bot', text: txt });
+        function appendBotMsg(txt, isTemp = false, save = true) {
+            if(!isTemp && save) chatHistory.push({ role: 'bot', text: txt });
             const box = document.getElementById('chat-box');
             const cleanTxt = txt.replace(/\n/g, '<br>');
             const idAttr = isTemp ? 'id="loading-msg"' : '';
@@ -101,6 +120,7 @@
                     </div>
                 </div>`;
             box.scrollTop = box.scrollHeight;
+            if(!isTemp && save) saveHistory();
         }
 
         function copyText(btn) {
@@ -122,10 +142,9 @@
             inp.value = '';
             
             inp.disabled = true; btn.disabled = true;
-            appendBotMsg("맵봇이 생각하는 중입니다... 🤔", true);
+            appendBotMsg("맵봇이 생각하는 중입니다... 🤔", true, false);
 
             try {
-                // Vercel Serverless Function 호출 (경로 주의: /api/chat)
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

@@ -81,9 +81,12 @@
         .sticker-item:hover, .sticker-item.selected { background: #EBF5FB; border-color: var(--primary); transform: scale(1.05); }
         .sticker-emoji { font-size: 1.4rem; margin-bottom: 2px; }
 
-        footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; }
-        #share-btn { background: #FF9A9E; color: white; border: none; padding: 12px 30px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4); }
-        #share-btn:hover { background: #FF858A; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6); }
+        footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; gap: 10px;}
+        .btn-action { color: white; border: none; padding: 12px 25px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        #download-btn { background: #95A5A6; }
+        #download-btn:hover { background: #7F8C8D; transform: translateY(-3px); }
+        #submit-btn { background: #FF9A9E; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4); }
+        #submit-btn:hover { background: #FF858A; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6); }
 
         #help-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%; position: relative; font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
@@ -179,7 +182,8 @@
     </main>
 
     <footer>
-        <button id="share-btn" onclick="shareCanvas()">📸 선생님께 제출하기</button>
+        <button class="btn-action" id="download-btn" onclick="handleAction('download')">📥 다운로드(저장)</button>
+        <button class="btn-action" id="submit-btn" onclick="handleAction('submit')">📸 선생님께 제출하기</button>
     </footer>
 
     <script>
@@ -673,20 +677,27 @@
             if (drawMode === 'point' && activeLine) { state.lines.push(activeLine); activeLine = null; pushState(); redraw(); }
         });
 
-        function shareCanvas() {
+        function handleAction(type) {
             const tempScale = scale; const tempPanX = panX; const tempPanY = panY;
             scale = 1; panX = 0; panY = 0; hoverIdx = -1; draggingStickerIdx = -1; redraw();
 
             cvs.toBlob(blob => {
                 scale = tempScale; panX = tempPanX; panY = tempPanY; redraw();
-                if (window.parent && window.parent.handleMapSave) {
-                    const reader = new FileReader(); reader.readAsDataURL(blob);
-                    reader.onloadend = function() { window.parent.handleMapSave(reader.result, "백지도 그리기"); }
-                } else {
+                
+                if (type === 'submit') {
+                    if (window.parent && window.parent.handleMapSave) {
+                        const reader = new FileReader(); reader.readAsDataURL(blob);
+                        reader.onloadend = function() { window.parent.handleMapSave(reader.result, "백지도 그리기"); }
+                    } else {
+                        alert("런처(메인화면)를 통해서 접속해야 제출이 가능합니다.");
+                    }
+                } else if (type === 'download') {
                     const sgg = mapImg ? (selSigg.value === "-" ? "세종시" : selSigg.value) : "우리동네";
-                    const url = URL.createObjectURL(blob); const a = document.createElement('a'); 
+                    const url = URL.createObjectURL(blob); 
+                    const a = document.createElement('a'); 
                     a.href = url; a.download = `MAP_KIT_백지도_${sgg}.jpg`; 
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); 
+                    URL.revokeObjectURL(url);
                 }
             }, 'image/jpeg', 0.95);
         }
