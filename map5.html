@@ -30,11 +30,13 @@
         .nb-topic { flex: 1; margin: 0 20px; }
         .nb-topic input { width: 100%; padding: 10px; font-size: 1.3rem; border: none; border-bottom: 2px dashed var(--primary); outline: none; font-family: 'Jua', sans-serif; background: transparent; color: #2C3E50; text-align: center;}
         
-        .nb-toolbar { display: flex; gap: 10px; background: white; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); align-items: center; justify-content: center; z-index: 5; flex-wrap:wrap;}
+        .nb-toolbar { display: flex; gap: 10px; background: white; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); align-items: center; justify-content: flex-start; z-index: 5; flex-wrap:wrap;}
         .tool-group { display: flex; align-items: center; gap: 8px; border-right: 2px solid var(--border); padding-right: 15px; }
-        .tool-group:last-child { border: none; }
+        .tool-group:last-child { border: none; padding-right: 0;}
         .tool-btn { background: #F0F3F4; border: none; padding: 10px 15px; border-radius: 12px; cursor: pointer; font-family: 'Jua', sans-serif; transition: 0.2s; font-size: 1.05rem; color: #4A4A4A;}
         .tool-btn.active { background: #D1F2EB; color: #117A65; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        .action-btn { padding: 8px 12px; border: 1px solid #D5D8DC; background: #FDFDFD; }
+        .action-btn:hover { background: #F4F6F7; }
         
         .btn-import { background: #FEF9E7; border: 1px solid #F1C40F; color: #D4AC0D; font-weight: bold; }
         .btn-import:hover { background: #FCF3CF; }
@@ -44,8 +46,11 @@
         #notebook-canvas-container { position: relative; width: 100%; max-width: 900px; height: 100%; background: #FAFAFA; background-image: radial-gradient(#D5D8DC 1px, transparent 1px); background-size: 25px 25px; border-radius: var(--radius-box); box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden;}
         
         #draw-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-        #draw-layer.active { pointer-events: auto; cursor: crosshair; }
+        #draw-layer.active { pointer-events: auto; cursor: none; /* 커서 인디케이터를 사용하므로 기본 커서 숨김 */ }
         
+        /* 커서 인디케이터 */
+        #cursor-indicator { position: fixed; border-radius: 50%; pointer-events: none; display: none; z-index: 9999; transform: translate(-50%, -50%); box-shadow: 0 0 3px rgba(0,0,0,0.4); border: 1.5px solid #000; }
+
         .layout-container { width: 100%; height: 100%; padding: 25px; z-index: 2; position: relative; gap: 20px; }
         
         .text-box { width: 100%; height: 100%; border: none; background: transparent; resize: none; font-family: sans-serif; font-size: 1.1rem; line-height: 1.6; outline: none; padding: 15px; border: 2px dashed #BDC3C7; border-radius: 16px; color: #34495E; transition: 0.2s;}
@@ -79,6 +84,9 @@
     </style>
 </head>
 <body>
+
+    <!-- 커서 표시기 -->
+    <div id="cursor-indicator"></div>
 
     <div id="layout-modal">
         <div class="modal-box">
@@ -116,15 +124,37 @@
             <button class="tool-btn btn-import" onclick="importChatHistory()">💬 대화 불러오기</button>
             <button class="tool-btn" onclick="openLayoutModal()">📑 양식 변경</button>
         </div>
+        
+        <!-- 실행 취소 / 복구 추가 -->
         <div class="tool-group">
-            <button class="tool-btn" id="tool-text" onclick="setNotebookMode('text')">⌨️ 글쓰기</button>
-            <button class="tool-btn" id="tool-draw" onclick="setNotebookMode('draw')">🖍️ 펜그리기</button>
-            <button class="tool-btn" id="tool-erase" onclick="setNotebookMode('erase')">🧽 지우개</button>
-            <input type="color" id="draw-color" value="#E74C3C" onchange="if(curNbMode==='draw') setNotebookMode('draw')" style="cursor:pointer; height:35px; border-radius:8px; border:1px solid #BDC3C7;">
-            <input type="range" id="draw-size" min="2" max="25" value="5" style="width: 100px; accent-color:#5DADE2;">
-            <button class="tool-btn" onclick="clearCanvas()" style="color: #E74C3C; font-weight:bold;">🗑️ 그림 지우기</button>
+            <button class="tool-btn action-btn" onclick="undo()" id="btn-undo">↩️</button>
+            <button class="tool-btn action-btn" onclick="redo()" id="btn-redo">↪️</button>
         </div>
-        <button class="btn-primary" onclick="saveNotebook()">📸 완성! 선생님께 제출</button>
+
+        <div class="tool-group">
+            <button class="tool-btn active" id="tool-text" onclick="setNotebookMode('text')">⌨️ 글쓰기</button>
+            
+            <button class="tool-btn" id="tool-draw" onclick="setNotebookMode('draw')">✏️ 펜</button>
+            <button class="tool-btn" id="tool-highlighter" onclick="setNotebookMode('highlighter')">🖍️ 형광펜</button>
+            
+            <!-- 색상 선택기 위치 변경 및 기능 연동 -->
+            <input type="color" id="draw-color" value="#2C3E50" onchange="updateColorState()" style="cursor:pointer; height:35px; border-radius:8px; border:1px solid #BDC3C7;">
+            
+            <!-- 지우개를 펜, 색상 뒤로 이동 -->
+            <button class="tool-btn" id="tool-erase" onclick="setNotebookMode('erase')">🧽 지우개</button>
+            
+            <!-- 스마트 사이즈 슬라이더 -->
+            <div style="display:flex; flex-direction:column; align-items:center; margin-left:5px;">
+                <span id="size-label" style="font-size:0.8rem; color:#7F8C8D; font-weight:bold;">펜 굵기</span>
+                <input type="range" id="draw-size" min="2" max="50" value="5" style="width: 80px; accent-color:#5DADE2;" oninput="updateSizeState()">
+            </div>
+        </div>
+
+        <div class="tool-group" style="border:none;">
+            <button class="tool-btn" onclick="clearCanvas()" style="color: #E74C3C; font-weight:bold;">🗑️ 전체 지우기</button>
+        </div>
+        
+        <button class="btn-primary" style="margin-left:auto;" onclick="saveNotebook()">📸 완성! 선생님께 제출</button>
     </div>
 
     <div class="nb-workspace">
@@ -135,11 +165,25 @@
     </div>
 
     <script>
+        // 도구별 상태(굵기, 색상)를 개별 기억하는 스마트 로직
+        let state = {
+            pen: { size: 5, color: '#2C3E50' },
+            highlighter: { size: 20, color: '#F1C40F' },
+            erase: { size: 30 }
+        };
+
         let curNbMode = 'text';
         const cvs = document.getElementById('draw-layer');
         const ctx = cvs.getContext('2d');
+        const cursorIndicator = document.getElementById('cursor-indicator');
+        
         let isDrawing = false;
         let lastX = 0, lastY = 0;
+        let lastMouseEvent = null;
+
+        // 히스토리 로직
+        let historyStack = [];
+        let historyStep = -1;
 
         function openLayoutModal() {
             document.getElementById('layout-modal').classList.remove('hidden');
@@ -176,12 +220,12 @@
             const histStr = sessionStorage.getItem('mapbotHistory');
             if(!histStr) { alert("아직 맵봇과 나눈 대화 기록이 없어요."); return; }
             
-            const history = JSON.parse(histStr);
-            if(history.length <= 1) { alert("아직 맵봇과 나눈 대화가 없어요."); return; }
+            const historyObj = JSON.parse(histStr);
+            if(historyObj.length <= 1) { alert("아직 맵봇과 나눈 대화가 없어요."); return; }
             
             const targetBox = document.querySelector('.chat-target');
             if(targetBox) {
-                const historyText = history.slice(1).map(c => `[${c.role === 'user' ? '나' : '🤖 맵봇'}]\n${c.text}`).join('\n\n');
+                const historyText = historyObj.slice(1).map(c => `[${c.role === 'user' ? '나' : '🤖 맵봇'}]\n${c.text}`).join('\n\n');
                 targetBox.value += (targetBox.value ? '\n\n---\n\n' : '') + historyText;
                 alert("대화 내용이 공책에 쏙 들어왔습니다! 필요한 부분만 예쁘게 수정해보세요.");
             } else {
@@ -191,34 +235,142 @@
 
         function initCanvas() {
             const container = document.getElementById('notebook-canvas-container');
+            let oldData = null;
+            if (cvs.width > 0 && cvs.height > 0 && historyStep > -1) {
+                oldData = ctx.getImageData(0,0,cvs.width,cvs.height);
+            }
             cvs.width = container.clientWidth;
             cvs.height = container.clientHeight;
+            
+            if(oldData) {
+                ctx.putImageData(oldData, 0, 0);
+            } else {
+                saveHistory(); // 첫 캔버스 세팅 시 히스토리 기록
+            }
         }
 
         window.addEventListener('resize', () => { 
             if(document.getElementById('layout-modal').classList.contains('hidden')) initCanvas(); 
         });
 
+        // 툴바 셋팅 (색상 비활성화, 사이즈 자동 변경 포함)
         function setNotebookMode(mode) {
             curNbMode = mode;
             document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
             if(document.getElementById('tool-' + mode)) document.getElementById('tool-' + mode).classList.add('active');
 
+            const colorPicker = document.getElementById('draw-color');
+            const sizeSlider = document.getElementById('draw-size');
+            const sizeLabel = document.getElementById('size-label');
+
             if(mode === 'text') {
                 cvs.classList.remove('active');
+                cursorIndicator.style.display = 'none';
             } else {
                 cvs.classList.add('active');
                 if(mode === 'draw') {
                     ctx.globalCompositeOperation = 'source-over';
+                    colorPicker.disabled = false;
+                    colorPicker.style.opacity = '1';
+                    colorPicker.value = state.pen.color;
+                    sizeSlider.value = state.pen.size;
+                    sizeLabel.innerText = '펜 굵기';
+                } else if(mode === 'highlighter') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    colorPicker.disabled = false;
+                    colorPicker.style.opacity = '1';
+                    colorPicker.value = state.highlighter.color;
+                    sizeSlider.value = state.highlighter.size;
+                    sizeLabel.innerText = '형광펜 굵기';
                 } else if(mode === 'erase') {
                     ctx.globalCompositeOperation = 'destination-out';
+                    // 지우개 선택 시 색상 팔레트 비활성화
+                    colorPicker.disabled = true;
+                    colorPicker.style.opacity = '0.3';
+                    sizeSlider.value = state.erase.size;
+                    sizeLabel.innerText = '지우개 크기';
                 }
             }
+            if (lastMouseEvent) updateCursor(lastMouseEvent);
+        }
+
+        function updateSizeState() {
+            const val = document.getElementById('draw-size').value;
+            if(curNbMode === 'draw') state.pen.size = val;
+            else if(curNbMode === 'highlighter') state.highlighter.size = val;
+            else if(curNbMode === 'erase') state.erase.size = val;
+            
+            if (lastMouseEvent) updateCursor(lastMouseEvent);
+        }
+
+        function updateColorState() {
+            const val = document.getElementById('draw-color').value;
+            if(curNbMode === 'draw') state.pen.color = val;
+            else if(curNbMode === 'highlighter') state.highlighter.color = val;
+            
+            if (lastMouseEvent) updateCursor(lastMouseEvent);
+        }
+
+        // 지우개(및 펜) 커서 표시 로직
+        function updateCursor(e) {
+            if (curNbMode === 'text') {
+                cursorIndicator.style.display = 'none';
+                return;
+            }
+            
+            cursorIndicator.style.display = 'block';
+            cursorIndicator.style.left = e.clientX + 'px';
+            cursorIndicator.style.top = e.clientY + 'px';
+            
+            const size = document.getElementById('draw-size').value;
+            cursorIndicator.style.width = size + 'px';
+            cursorIndicator.style.height = size + 'px';
+            
+            if (curNbMode === 'erase') {
+                cursorIndicator.style.borderColor = '#000000';
+                cursorIndicator.style.background = 'rgba(255, 255, 255, 0.7)';
+            } else if (curNbMode === 'highlighter') {
+                cursorIndicator.style.borderColor = state.highlighter.color;
+                cursorIndicator.style.background = state.highlighter.color + '66'; // 반투명
+            } else {
+                cursorIndicator.style.borderColor = state.pen.color;
+                cursorIndicator.style.background = 'transparent';
+            }
+        }
+
+        // 히스토리 관리 (실행 취소/복구)
+        function saveHistory() {
+            historyStack = historyStack.slice(0, historyStep + 1);
+            historyStack.push(ctx.getImageData(0, 0, cvs.width, cvs.height));
+            historyStep++;
+            updateHistoryButtons();
+        }
+
+        function undo() {
+            if(historyStep > 0) {
+                historyStep--;
+                ctx.putImageData(historyStack[historyStep], 0, 0);
+                updateHistoryButtons();
+            }
+        }
+
+        function redo() {
+            if(historyStep < historyStack.length - 1) {
+                historyStep++;
+                ctx.putImageData(historyStack[historyStep], 0, 0);
+                updateHistoryButtons();
+            }
+        }
+
+        function updateHistoryButtons() {
+            document.getElementById('btn-undo').style.opacity = historyStep > 0 ? "1" : "0.4";
+            document.getElementById('btn-redo').style.opacity = historyStep < historyStack.length - 1 ? "1" : "0.4";
         }
 
         function clearCanvas() {
             if(confirm("그린 그림을 모두 지울까요? (글씨는 남습니다)")) {
                 ctx.clearRect(0, 0, cvs.width, cvs.height);
+                saveHistory();
             }
         }
 
@@ -230,14 +382,16 @@
             };
         }
 
-        const startDraw = (e) => {
-            if(curNbMode === 'text') return;
-            isDrawing = true;
-            const pos = getMousePos(e);
-            lastX = pos.x; lastY = pos.y;
-        };
+        // 마우스 및 터치 이벤트
+        cvs.addEventListener('mousemove', (e) => {
+            lastMouseEvent = e;
+            const rect = cvs.getBoundingClientRect();
+            if(e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                updateCursor(e);
+            } else {
+                cursorIndicator.style.display = 'none';
+            }
 
-        const draw = (e) => {
             if(!isDrawing) return;
             e.preventDefault();
             const pos = getMousePos(e);
@@ -248,30 +402,91 @@
             ctx.lineWidth = document.getElementById('draw-size').value;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            ctx.strokeStyle = document.getElementById('draw-color').value;
+            
+            if(curNbMode === 'erase') {
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+                ctx.globalAlpha = 1.0;
+            } else if (curNbMode === 'highlighter') {
+                ctx.strokeStyle = state.highlighter.color;
+                ctx.globalAlpha = 0.4;
+            } else {
+                ctx.strokeStyle = state.pen.color;
+                ctx.globalAlpha = 1.0;
+            }
             
             ctx.stroke();
             lastX = pos.x; lastY = pos.y;
+        });
+
+        cvs.addEventListener('mouseleave', () => {
+            cursorIndicator.style.display = 'none';
+            if(isDrawing) {
+                isDrawing = false;
+                saveHistory();
+            }
+        });
+
+        const startDraw = (e) => {
+            if(curNbMode === 'text') return;
+            isDrawing = true;
+            const pos = getMousePos(e);
+            lastX = pos.x; lastY = pos.y;
         };
 
-        const stopDraw = () => { isDrawing = false; };
+        const stopDraw = () => { 
+            if(isDrawing) {
+                isDrawing = false; 
+                saveHistory();
+            }
+        };
 
         cvs.addEventListener('mousedown', startDraw);
-        window.addEventListener('mousemove', draw);
         window.addEventListener('mouseup', stopDraw);
         
-        cvs.addEventListener('touchstart', startDraw, {passive: false});
-        cvs.addEventListener('touchmove', draw, {passive: false});
+        // 터치 기기에서는 커서 숨김
+        cvs.addEventListener('touchstart', (e) => {
+            cursorIndicator.style.display = 'none';
+            startDraw(e);
+        }, {passive: false});
+        cvs.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            cursorIndicator.style.display = 'none';
+            
+            if(!isDrawing) return;
+            const pos = getMousePos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(pos.x, pos.y);
+            
+            ctx.lineWidth = document.getElementById('draw-size').value;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            if(curNbMode === 'erase') {
+                ctx.strokeStyle = 'rgba(0,0,0,1)';
+                ctx.globalAlpha = 1.0;
+            } else if (curNbMode === 'highlighter') {
+                ctx.strokeStyle = state.highlighter.color;
+                ctx.globalAlpha = 0.4;
+            } else {
+                ctx.strokeStyle = state.pen.color;
+                ctx.globalAlpha = 1.0;
+            }
+            
+            ctx.stroke();
+            lastX = pos.x; lastY = pos.y;
+        }, {passive: false});
         window.addEventListener('touchend', stopDraw);
 
         function saveNotebook() {
-            // 깔끔한 스크린샷을 위해 테두리 임시 제거
+            // 스크린샷 깔끔하게 찍기 위한 처리
             document.querySelectorAll('.text-box').forEach(tb => {
                 tb.style.border = 'none';
                 tb.style.background = 'transparent';
             });
             document.querySelector('.nb-topic input').style.border = 'none';
             cvs.classList.remove('active'); 
+            cursorIndicator.style.display = 'none'; // 커서 숨기기
 
             const element = document.getElementById('notebook-canvas-container');
             html2canvas(element, { backgroundColor: '#FAFAFA', scale: 2 }).then(canvas => {
