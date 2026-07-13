@@ -36,9 +36,9 @@
         .btn-submit { background: var(--primary-color); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 1.3rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.3s; width: 100%; box-sizing: border-box;}
         .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(93, 173, 226, 0.4); }
 
-        #menu-screen { display: none; width: 100%; max-width: 650px; }
+        #menu-screen { display: none; width: 100%; max-width: 680px; }
         
-        .section-title { font-size: 1.4rem; color: #7F8C8D; text-align: left; margin-top: 20px; border-bottom: 2px dashed #E5E7E9; padding-bottom: 5px; }
+        .section-title { font-size: 1.4rem; color: #7F8C8D; text-align: left; margin-top: 15px; border-bottom: 2px dashed #E5E7E9; padding-bottom: 5px; }
         .app-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
         
         .app-card { background: #F8F9F9; border: 2px solid #E5E7E9; border-radius: 16px; padding: 20px 5px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center;}
@@ -46,10 +46,6 @@
         .app-icon { font-size: 3rem; margin-bottom: 10px; }
         .app-card h2 { margin: 0; font-size: 1.2rem; line-height: 1.3; word-break: keep-all; color: var(--text-color); text-align: center;}
         
-        .admin-card { background: #FDEDEC; border-color: #F5B7B1; }
-        .admin-card:hover { background: #FADBD8; border-color: #E74C3C; }
-        .admin-card h2 { color: #C0392B; }
-
         #app-container { display: none; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; background: white; z-index: 100; }
         iframe { width: 100%; height: 100%; border: none; }
         
@@ -59,12 +55,12 @@
         
         #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255,255,255,0.8); z-index: 10000; justify-content: center; align-items: center; font-size: 1.5rem; color: var(--primary-color); text-align: center; padding: 20px; flex-direction: column; gap: 15px;}
 
-        /* 관리자 패널 스타일 (명렬표 엑셀 형식) */
-        #admin-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
-        .admin-content { background: white; padding: 30px; border-radius: 20px; width: 95%; max-width: 1100px; height: 85vh; display: flex; flex-direction: column; position: relative; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E5E7E9; padding-bottom: 15px; margin-bottom: 10px; }
-        .admin-header h2 { margin: 0; color: var(--primary-color); font-size: 1.5rem;}
-        .close-admin { font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
+        /* 공통 모달창 스타일 (갤러리, 교사용 페이지) */
+        .full-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; }
+        .full-content { background: white; padding: 30px; border-radius: 20px; width: 95%; max-width: 1100px; height: 85vh; display: flex; flex-direction: column; position: relative; }
+        .full-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E5E7E9; padding-bottom: 15px; margin-bottom: 10px; }
+        .full-header h2 { margin: 0; color: var(--primary-color); font-size: 1.5rem;}
+        .close-btn { font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
         
         .admin-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; width: 100%; }
         .admin-tabs { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; border-bottom: 1px solid #E5E7E9; padding-bottom: 10px; }
@@ -77,19 +73,27 @@
 
         .table-container { flex: 1; overflow-y: auto; background: white; border: 2px solid #E5E7E9; border-radius: 12px; }
         .admin-table { width: 100%; border-collapse: collapse; text-align: center; }
-        .admin-table th { background: #F0F3F4; padding: 12px; font-size: 1.1rem; color: #34495E; position: sticky; top: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .admin-table th { background: #F0F3F4; padding: 12px; font-size: 1.1rem; color: #34495E; position: sticky; top: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 2;}
         .admin-table td { padding: 12px; border-bottom: 1px solid #E5E7E9; font-size: 1.05rem; color: #4A4A4A;}
         .admin-table tbody tr { cursor: pointer; transition: background 0.2s; }
         .admin-table tbody tr:hover { background: #EBF5FB; }
 
+        /* 갤러리 썸네일 그리드 */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; overflow-y: auto; flex: 1; padding: 10px; }
+        .gallery-item { border: 2px solid #E5E7E9; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; background: #FDFDFD; cursor: pointer; transition: 0.2s; }
+        .gallery-item:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); border-color: var(--primary-color); }
+        .gallery-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 2px solid #E5E7E9; }
+        .gallery-info { padding: 12px; display: flex; flex-direction: column; gap: 5px; text-align: left; }
+
         /* 학생 팝업 상세 모달 */
-        #admin-detail-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 10001; justify-content: center; align-items: center; }
+        #detail-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 10001; justify-content: center; align-items: center; }
         .detail-box { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; position: relative; display: flex; flex-direction: column;}
         .close-detail { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
         #detail-title { color: var(--primary-color); margin-top: 0; border-bottom: 2px dashed #E5E7E9; padding-bottom: 10px;}
-        .admin-img { width: 100%; max-height: 500px; object-fit: contain; background: #F0F3F4; border-radius: 12px; margin-bottom: 15px;}
-        .admin-chat-log { white-space: pre-wrap; font-family: sans-serif; font-size: 1rem; line-height: 1.5; background: #F8F9F9; padding: 20px; border-radius: 12px; color: #2C3E50; border: 1px solid #E5E7E9; text-align: left; }
+        .detail-img { width: 100%; max-height: 500px; object-fit: contain; background: #F0F3F4; border-radius: 12px; margin-bottom: 15px;}
+        .detail-chat-log { white-space: pre-wrap; font-family: sans-serif; font-size: 1rem; line-height: 1.5; background: #F8F9F9; padding: 20px; border-radius: 12px; color: #2C3E50; border: 1px solid #E5E7E9; text-align: left; }
         #detail-lesson { background: #FEF9E7; padding: 15px; border-radius: 12px; font-size: 1.1rem; color: #4A4A4A; text-align: left; border: 1px solid #F9E79F;}
+        #detail-actions { margin-top: 15px; text-align: right; }
     </style>
 </head>
 <body>
@@ -135,9 +139,13 @@
     </div>
 
     <div class="container" id="menu-screen">
-        <h1 id="welcome-msg" style="color:var(--primary-color); margin-bottom:5px;">환영합니다!</h1>
+        <!-- 💡 환영 메시지와 작품 갤러리 버튼을 같은 줄에 배치 -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 2px dashed #E5E7E9; padding-bottom: 10px;">
+            <h1 id="welcome-msg" style="color:var(--primary-color); margin:0; font-size: 1.6rem;">환영합니다!</h1>
+            <button class="btn-submit" style="width:auto; padding: 8px 15px; font-size:1.05rem; background:#FFF9E6; color:#D4AC0D; border: 2px solid #F1C40F; cursor:pointer;" onclick="openGalleryPanel()">🎨 우리반 작품 갤러리</button>
+        </div>
         
-        <div class="section-title">🗺️ MAP KIT (지도 도구)</div>
+        <div class="section-title" style="margin-top:0;">🗺️ MAP KIT (지도 도구)</div>
         <div class="app-grid">
             <div class="app-card" onclick="openApp('map1.html')">
                 <div class="app-icon">📝</div>
@@ -147,9 +155,9 @@
                 <div class="app-icon">💡</div>
                 <h2>지도<br>겹치기</h2>
             </div>
-            <div class="app-card" onclick="openApp('map3.html')">
-                <div class="app-icon">📸</div>
-                <h2>백지도<br>메이커</h2>
+            <div class="app-card" style="background:#FCF3CF; border-color:#F1C40F;" onclick="alert('🚀 맵봇이 타임머신을 수리 중이에요! 조금만 기다려주세요!')">
+                <div class="app-icon" style="filter: grayscale(0%);">⏳</div>
+                <h2 style="color:#B7950B;">타임머신<br>역사 지도</h2>
             </div>
         </div>
 
@@ -159,23 +167,28 @@
                 <div class="app-icon">🤖</div>
                 <h2>맵봇에게<br>물어보기</h2>
             </div>
+            <div class="app-card" onclick="openApp('map3.html')">
+                <div class="app-icon">📸</div>
+                <h2>백지도<br>메이커</h2>
+            </div>
             <div class="app-card" onclick="openApp('map5.html')">
                 <div class="app-icon">📓</div>
                 <h2>배움공책<br>정리하기</h2>
             </div>
-            <div class="app-card admin-card" onclick="openAdminPrompt()">
-                <div class="app-icon">⚙️</div>
-                <h2>교사용<br>페이지</h2>
-            </div>
         </div>
         
-        <button class="btn-submit" style="margin-top: 30px; background: #95A5A6;" onclick="location.reload()">로그아웃</button>
+        <!-- 💡 로그아웃과 교사용 페이지(관리자)를 하단에 깔끔하게 분리 배치 -->
+        <div style="display:flex; justify-content:space-between; margin-top: 30px; gap: 15px;">
+            <button class="btn-submit" style="flex:1; background: #95A5A6;" onclick="location.reload()">로그아웃</button>
+            <button class="btn-submit" style="flex:1; background: #FDFEFE; color: #7F8C8D; border: 2px solid #D5D8DC;" onclick="openAdminPrompt()">⚙️ 교사용 페이지</button>
+        </div>
     </div>
 
     <div id="app-container">
         <iframe id="app-frame" src=""></iframe>
     </div>
 
+    <!-- 데이터 전송 모달 -->
     <div id="lesson-modal">
         <div class="modal-content">
             <h2 id="modal-title" style="color: var(--primary-color); margin-top:0;">✨ 오늘의 배움 기록하기</h2>
@@ -193,12 +206,45 @@
         <div>선생님의 구글 시트로 전송 중입니다...</div>
     </div>
 
-    <!-- 선생님 전용 관리자 패널 (엑셀 명렬표 스타일) -->
-    <div id="admin-modal">
-        <div class="admin-content">
-            <div class="admin-header">
-                <h2>🕵️ 교사용 데이터 갤러리</h2>
-                <button class="close-admin" onclick="document.getElementById('admin-modal').style.display='none'">X</button>
+    <!-- 🎨 1. 학생용 작품 갤러리 패널 (삭제 기능 없음, 지도 작품만 보임) -->
+    <div id="gallery-modal" class="full-modal">
+        <div class="full-content">
+            <div class="full-header">
+                <h2>🎨 우리반 작품 갤러리</h2>
+                <button class="close-btn" onclick="document.getElementById('gallery-modal').style.display='none'">X</button>
+            </div>
+            
+            <div class="admin-controls">
+                <div class="admin-filters">
+                    <select id="gal-school-filter" class="admin-filter-select" onchange="renderGalleryGrid()">
+                        <option value="all">🏫 모든 학교</option>
+                    </select>
+                    <select id="gal-grade-filter" class="admin-filter-select" onchange="renderGalleryGrid()">
+                        <option value="all">📚 모든 학년</option>
+                    </select>
+                    <select id="gal-class-filter" class="admin-filter-select" onchange="renderGalleryGrid()">
+                        <option value="all">🏷️ 모든 반</option>
+                    </select>
+                    <input type="text" id="gal-name-search" class="admin-filter-input" placeholder="🔍 이름 검색" oninput="renderGalleryGrid()">
+                </div>
+            </div>
+
+            <div id="gallery-loading" style="text-align:center; font-size: 1.5rem; color: var(--primary-color); padding: 40px;">
+                친구들의 멋진 작품을 불러오고 있습니다... 🎨
+            </div>
+            
+            <div class="gallery-grid" id="gallery-grid" style="display:none;">
+                <!-- 썸네일 형태의 아이템들이 들어갑니다. -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ⚙️ 2. 교사용 데이터 페이지 패널 (비밀번호 필요, 전체 명렬표, 삭제 기능 포함) -->
+    <div id="admin-modal" class="full-modal">
+        <div class="full-content">
+            <div class="full-header">
+                <h2>⚙️ 교사용 데이터 갤러리</h2>
+                <button class="close-btn" onclick="document.getElementById('admin-modal').style.display='none'">X</button>
             </div>
             
             <div class="admin-controls">
@@ -209,7 +255,6 @@
                     <button class="admin-tab" onclick="setProgramFilter('맵봇 챗봇')">챗봇 대화</button>
                     <button class="admin-tab" onclick="setProgramFilter('배움 공책')">배움 노트</button>
                 </div>
-                <!-- 다중 필터 및 검색 창 -->
                 <div class="admin-filters">
                     <select id="school-filter" class="admin-filter-select" onchange="renderAdminTable()">
                         <option value="all">🏫 모든 학교</option>
@@ -220,12 +265,12 @@
                     <select id="class-filter" class="admin-filter-select" onchange="renderAdminTable()">
                         <option value="all">🏷️ 모든 반</option>
                     </select>
-                    <input type="text" id="name-search" class="admin-filter-input" placeholder="🔍 이름 검색 (엔터)" oninput="renderAdminTable()">
+                    <input type="text" id="name-search" class="admin-filter-input" placeholder="🔍 이름 검색" oninput="renderAdminTable()">
                 </div>
             </div>
 
             <div id="admin-loading" style="text-align:center; font-size: 1.5rem; color: var(--primary-color); padding: 40px;">
-                학생들의 데이터를 구글 시트에서 불러오고 있습니다... 🚀
+                학생들의 전체 데이터를 불러오고 있습니다... 🚀
             </div>
             
             <div class="table-container" id="admin-grid" style="display:none;">
@@ -245,40 +290,37 @@
         </div>
     </div>
 
-    <!-- 학생 개별 팝업창 (모달) -->
-    <div id="admin-detail-modal">
+    <!-- 공통 상세 팝업창 (모달) -->
+    <div id="detail-modal">
         <div class="detail-box">
-            <button class="close-detail" onclick="document.getElementById('admin-detail-modal').style.display='none'">X</button>
+            <button class="close-detail" onclick="document.getElementById('detail-modal').style.display='none'">X</button>
             <h2 id="detail-title">학생 결과물 상세</h2>
             <div id="detail-content" style="margin-top:15px; text-align:center;"></div>
             <div id="detail-lesson"></div>
+            <!-- 💡 삭제 버튼: 관리자 권한 확인 후 표시 -->
+            <div id="detail-actions" style="display:none; margin-top: 15px; text-align: right; border-top: 2px dashed #E5E7E9; padding-top: 15px;">
+                <button onclick="deleteCurrentData()" style="background:#E74C3C; color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-family:'Jua', sans-serif; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(231,76,60,0.3);">🗑️ 이 데이터 삭제하기</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // 💡 프로그램 분석 완료! 기존에 정상 작동하던 구글 시트 웹 앱 URL을 추출해 심어두었습니다.
-        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzQHq43U4Bg77kQ5fQv1aQTjop8SYUAS29JSZ4bJ6W1JnO5pnn0psuSzoyxc8yaFTgoGg/exec"; 
+        // 💡 기존 구글 시트 URL 유지! 
+        const GOOGLE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwC4iY26IlZdcKIPI0QDIFiKeBPD9n7fBXL2qe0UcalT4SRN9IIm5zuJhtF0lUeimmE4Q/exec"; 
 
         let studentData = {};
         let currentMapData = { base64: "", appName: "", extraText: "" };
         
-        let adminFullData = [];
+        let serverData = [];
         let currentProgFilter = '전체';
+        let isAdminMode = false;
+        let currentDetailItem = null;
 
         window.addEventListener('load', () => {
             sessionStorage.removeItem('customMap');
             sessionStorage.removeItem('userInfo');
             sessionStorage.removeItem('mapbotHistory');
         });
-
-        function openAdminPrompt() {
-            const pwd = prompt("교사용 페이지 접속 비밀번호를 입력하세요:");
-            if (pwd === "12345678") {
-                openAdminPanel();
-            } else if (pwd !== null) {
-                alert("비밀번호가 일치하지 않습니다.");
-            }
-        }
 
         function setTheme(color, btn) {
             document.documentElement.style.setProperty('--bg-color', color);
@@ -348,6 +390,7 @@
 
             document.getElementById('lesson-modal').style.display = 'none';
             document.getElementById('loading-overlay').style.display = 'flex';
+            document.querySelector('#loading-overlay div:nth-child(2)').innerText = '선생님의 구글 시트로 전송 중입니다...';
 
             const payload = {
                 ...studentData,
@@ -365,7 +408,7 @@
             .then(data => {
                 document.getElementById('loading-overlay').style.display = 'none';
                 if(data.status === 'success') {
-                    alert("✅ 선생님께 데이터가 성공적으로 전송되었습니다!");
+                    alert("✅ 성공적으로 전송되었습니다!");
                     if(currentMapData.base64) {
                         const a = document.createElement('a');
                         a.href = currentMapData.base64;
@@ -388,47 +431,119 @@
             });
         }
 
-        // --- 교사용 관리자 패널 로직 ---
-        function openAdminPanel() {
-            document.getElementById('admin-modal').style.display = 'flex';
-            document.getElementById('admin-loading').style.display = 'block';
-            document.getElementById('admin-grid').style.display = 'none';
-            
-            const tbody = document.getElementById('admin-tbody');
-            tbody.innerHTML = '';
-
+        // --- 공통 데이터 페치 ---
+        function fetchServerData(callback) {
             fetch(GOOGLE_WEB_APP_URL)
                 .then(res => res.json())
                 .then(res => {
-                    document.getElementById('admin-loading').style.display = 'none';
                     if(res.status === 'success') {
-                        adminFullData = res.data;
-                        populateFilters(); // 드롭다운 필터 채우기
-                        setProgramFilter('전체');
+                        serverData = res.data;
+                        callback(true);
                     } else {
-                        document.getElementById('admin-loading').innerHTML = `❌ 데이터 로드 실패. 앱스 스크립트 코드가 최신인지 확인하세요.`;
-                        document.getElementById('admin-loading').style.display = 'block';
+                        callback(false, "데이터 로드 실패. 앱스 스크립트 코드를 확인하세요.");
                     }
                 })
                 .catch(err => {
-                    document.getElementById('admin-loading').innerHTML = `❌ 네트워크 오류. 앱스 스크립트를 올바르게 배포했는지 확인하세요.`;
+                    callback(false, "네트워크 오류. 앱스 스크립트 권한을 확인하세요.");
                     console.error(err);
                 });
         }
 
-        // 데이터에서 학교, 학년, 반 목록을 자동으로 추출하여 드롭다운 생성
-        function populateFilters() {
-            const schoolSel = document.getElementById('school-filter');
-            const gradeSel = document.getElementById('grade-filter');
-            const classSel = document.getElementById('class-filter');
+        // --- 1. 학생용 갤러리 로직 (삭제불가, 이미지만) ---
+        function openGalleryPanel() {
+            isAdminMode = false;
+            document.getElementById('gallery-modal').style.display = 'flex';
+            document.getElementById('gallery-loading').style.display = 'block';
+            document.getElementById('gallery-grid').style.display = 'none';
+            document.getElementById('gallery-grid').innerHTML = '';
 
-            const schools = [...new Set(adminFullData.map(d => d.school))].filter(Boolean);
-            const grades = [...new Set(adminFullData.map(d => d.grade))].filter(Boolean);
-            const classes = [...new Set(adminFullData.map(d => d.classNum))].filter(Boolean);
+            fetchServerData((success, errMsg) => {
+                if(success) {
+                    document.getElementById('gallery-loading').style.display = 'none';
+                    populateFilters('gal-');
+                    renderGalleryGrid();
+                } else {
+                    document.getElementById('gallery-loading').innerHTML = `❌ ${errMsg}`;
+                }
+            });
+        }
 
-            const curSchool = schoolSel.value;
-            const curGrade = gradeSel.value;
-            const curClass = classSel.value;
+        function renderGalleryGrid() {
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = '';
+            grid.style.display = 'grid';
+
+            const sch = document.getElementById('gal-school-filter').value;
+            const grd = document.getElementById('gal-grade-filter').value;
+            const cls = document.getElementById('gal-class-filter').value;
+            const nameQ = document.getElementById('gal-name-search').value.trim().toLowerCase();
+
+            // 갤러리는 이미지 작품만!
+            let filtered = serverData.filter(d => d.program === '백지도 그리기' || d.program === '지도 겹치기');
+            
+            if(sch !== 'all') filtered = filtered.filter(d => d.school === sch);
+            if(grd !== 'all') filtered = filtered.filter(d => String(d.grade) === String(grd));
+            if(cls !== 'all') filtered = filtered.filter(d => String(d.classNum) === String(cls));
+            if(nameQ !== '') filtered = filtered.filter(d => (d.name || '').toLowerCase().includes(nameQ));
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div style="grid-column: 1 / -1; text-align:center; font-size:1.2rem; color:#95A5A6; padding:40px;">등록된 작품이 없습니다.</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'gallery-item';
+                card.innerHTML = `
+                    <img src="${item.imageBase64}" class="gallery-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                    <div class="gallery-info">
+                        <div style="font-size: 1.1rem; font-weight: bold; color: #4A4A4A;">🧑‍🎓 ${item.grade}-${item.classNum} ${item.name}</div>
+                        <div style="font-size: 0.9rem; color: var(--primary-color);">✨ ${item.program}</div>
+                    </div>
+                `;
+                card.onclick = () => openDetailModal(item);
+                grid.appendChild(card);
+            });
+        }
+
+        // --- 2. 교사용 관리자 패널 로직 (비번필수, 전체데이터, 삭제기능) ---
+        function openAdminPrompt() {
+            const pwd = prompt("교사용 페이지 접속 비밀번호를 입력하세요:");
+            if (pwd === "12345678") {
+                isAdminMode = true;
+                openAdminPanel();
+            } else if (pwd !== null) {
+                alert("비밀번호가 일치하지 않습니다.");
+            }
+        }
+
+        function openAdminPanel() {
+            document.getElementById('admin-modal').style.display = 'flex';
+            document.getElementById('admin-loading').style.display = 'block';
+            document.getElementById('admin-grid').style.display = 'none';
+            document.getElementById('admin-tbody').innerHTML = '';
+
+            fetchServerData((success, errMsg) => {
+                if(success) {
+                    document.getElementById('admin-loading').style.display = 'none';
+                    populateFilters('');
+                    setProgramFilter('전체');
+                } else {
+                    document.getElementById('admin-loading').innerHTML = `❌ ${errMsg}`;
+                }
+            });
+        }
+
+        function populateFilters(prefix = '') {
+            const schoolSel = document.getElementById(`${prefix}school-filter`);
+            const gradeSel = document.getElementById(`${prefix}grade-filter`);
+            const classSel = document.getElementById(`${prefix}class-filter`);
+
+            const schools = [...new Set(serverData.map(d => d.school))].filter(Boolean);
+            const grades = [...new Set(serverData.map(d => d.grade))].filter(Boolean);
+            const classes = [...new Set(serverData.map(d => d.classNum))].filter(Boolean);
+
+            const curSchool = schoolSel.value; const curGrade = gradeSel.value; const curClass = classSel.value;
 
             schoolSel.innerHTML = '<option value="all">🏫 모든 학교</option>';
             schools.sort().forEach(s => schoolSel.innerHTML += `<option value="${s}">${s}초</option>`);
@@ -448,54 +563,38 @@
             currentProgFilter = prog;
             document.querySelectorAll('.admin-tab').forEach(tab => {
                 tab.classList.remove('active');
-                if(tab.innerText === prog || (prog === '전체' && tab.innerText === '전체 보기')) {
-                    tab.classList.add('active');
-                } else if (prog === '맵봇 챗봇' && tab.innerText === '챗봇 대화') {
-                    tab.classList.add('active');
-                } else if (prog === '배움 공책' && tab.innerText === '배움 노트') {
-                    tab.classList.add('active');
-                }
+                if(tab.innerText === prog || (prog === '전체' && tab.innerText === '전체 보기')) tab.classList.add('active');
+                else if (prog === '맵봇 챗봇' && tab.innerText === '챗봇 대화') tab.classList.add('active');
+                else if (prog === '배움 공책' && tab.innerText === '배움 노트') tab.classList.add('active');
             });
             renderAdminTable();
         }
 
-        // 다중 필터 & 이름 검색 반영
         function renderAdminTable() {
             const tbody = document.getElementById('admin-tbody');
             tbody.innerHTML = '';
             document.getElementById('admin-grid').style.display = 'block';
 
-            const schoolFilter = document.getElementById('school-filter').value;
-            const gradeFilter = document.getElementById('grade-filter').value;
-            const classFilter = document.getElementById('class-filter').value;
-            const nameQuery = document.getElementById('name-search').value.trim().toLowerCase();
+            const sch = document.getElementById('school-filter').value;
+            const grd = document.getElementById('grade-filter').value;
+            const cls = document.getElementById('class-filter').value;
+            const nameQ = document.getElementById('name-search').value.trim().toLowerCase();
             
-            let filtered = adminFullData;
+            let filtered = serverData;
             
-            if(currentProgFilter !== '전체') {
-                filtered = filtered.filter(d => d.program === currentProgFilter);
-            }
-            if(schoolFilter !== 'all') {
-                filtered = filtered.filter(d => d.school === schoolFilter);
-            }
-            if(gradeFilter !== 'all') {
-                filtered = filtered.filter(d => String(d.grade) === String(gradeFilter));
-            }
-            if(classFilter !== 'all') {
-                filtered = filtered.filter(d => String(d.classNum) === String(classFilter));
-            }
-            if(nameQuery !== '') {
-                filtered = filtered.filter(d => (d.name || '').toLowerCase().includes(nameQuery));
-            }
+            if(currentProgFilter !== '전체') filtered = filtered.filter(d => d.program === currentProgFilter);
+            if(sch !== 'all') filtered = filtered.filter(d => d.school === sch);
+            if(grd !== 'all') filtered = filtered.filter(d => String(d.grade) === String(grd));
+            if(cls !== 'all') filtered = filtered.filter(d => String(d.classNum) === String(cls));
+            if(nameQ !== '') filtered = filtered.filter(d => (d.name || '').toLowerCase().includes(nameQ));
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="padding:40px; font-size:1.2rem; color:#95A5A6;">검색 조건에 맞는 제출 데이터가 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" style="padding:40px; font-size:1.2rem; color:#95A5A6;">검색 조건에 맞는 데이터가 없습니다.</td></tr>`;
                 return;
             }
 
-            filtered.forEach((item, idx) => {
+            filtered.forEach((item) => {
                 const tr = document.createElement('tr');
-                
                 let dateStr = "";
                 if(item.timestamp) {
                     const d = new Date(item.timestamp);
@@ -509,33 +608,86 @@
                     <td style="font-weight:bold; color:var(--primary-color);">${item.name || '무명'}</td>
                     <td><span style="background:#EBF5FB; padding:4px 10px; border-radius:10px; font-size:0.9rem;">${item.program || '알 수 없음'}</span></td>
                 `;
-                
-                tr.onclick = () => openAdminDetail(item);
+                tr.onclick = () => openDetailModal(item);
                 tbody.appendChild(tr);
             });
         }
 
-        function openAdminDetail(item) {
-            const modal = document.getElementById('admin-detail-modal');
+        // --- 공통 상세 모달 오픈 및 삭제 처리 ---
+        function openDetailModal(item) {
+            currentDetailItem = item; // 삭제를 위해 기억
+            const modal = document.getElementById('detail-modal');
             const title = document.getElementById('detail-title');
             const content = document.getElementById('detail-content');
             const lesson = document.getElementById('detail-lesson');
+            const actions = document.getElementById('detail-actions');
 
-            title.innerText = `🧑‍🎓 ${item.grade} ${item.classNum}반 ${item.studentNum}번 ${item.name} (${item.program})`;
+            title.innerText = `🧑‍🎓 ${item.grade} ${item.classNum}반 ${item.name} (${item.program})`;
             
             content.innerHTML = '';
             lesson.style.display = 'none';
 
             if(item.program === '맵봇 챗봇') {
-                content.innerHTML = `<div class="admin-chat-log">${item.lessonText || '대화 내용 없음'}</div>`;
+                content.innerHTML = `<div class="detail-chat-log">${item.lessonText || '대화 내용 없음'}</div>`;
             } else {
-                content.innerHTML = `<img src="${item.imageBase64}" class="admin-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">`;
+                content.innerHTML = `<img src="${item.imageBase64}" class="detail-img" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">`;
                 if(item.lessonText && item.lessonText.trim() !== '') {
                     lesson.innerText = `📝 배움 한 줄: "${item.lessonText}"`;
                     lesson.style.display = 'block';
                 }
             }
+            
+            // 관리자 모드일 때만 삭제 버튼 노출
+            actions.style.display = isAdminMode ? 'block' : 'none';
             modal.style.display = 'flex';
+        }
+
+        // 구글 Apps Script 연동 데이터 삭제
+        function deleteCurrentData() {
+            if(!currentDetailItem) return;
+            const targetName = currentDetailItem.name || '무명';
+            
+            const pwd = prompt(`정말 ${targetName} 학생의 학습 결과를 지우시겠습니까?\n삭제하시려면 선생님 비밀번호를 입력하세요.`);
+            if (pwd === "12345678") {
+                document.getElementById('loading-overlay').style.display = 'flex';
+                document.querySelector('#loading-overlay div:nth-child(2)').innerText = '데이터를 삭제하는 중입니다...';
+
+                // action: 'delete'와 고유 식별자(시간,이름,프로그램) 전송
+                const payload = {
+                    action: 'delete',
+                    timestamp: currentDetailItem.timestamp,
+                    name: currentDetailItem.name,
+                    program: currentDetailItem.program
+                };
+
+                fetch(GOOGLE_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    document.querySelector('#loading-overlay div:nth-child(2)').innerText = '선생님의 구글 시트로 전송 중입니다...';
+                    
+                    if(data.status === 'success') {
+                        alert("✅ 삭제가 완료되었습니다.");
+                        document.getElementById('detail-modal').style.display = 'none';
+                        openAdminPanel(); // 목록 갱신
+                    } else {
+                        alert("⚠️ 삭제 실패: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    document.querySelector('#loading-overlay div:nth-child(2)').innerText = '선생님의 구글 시트로 전송 중입니다...';
+                    alert("⚠️ 네트워크 오류로 삭제하지 못했습니다.");
+                    console.error(err);
+                });
+
+            } else if (pwd !== null) {
+                alert("비밀번호가 일치하지 않습니다.");
+            }
         }
     </script>
 </body>
