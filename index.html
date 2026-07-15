@@ -480,7 +480,7 @@
             const nameQ = document.getElementById('gal-name-search').value.trim().toLowerCase();
 
             // 갤러리는 이미지 작품만!
-            let filtered = serverData.filter(d => d.program === '백지도 그리기' || d.program === '지도 겹치기');
+            let filtered = serverData.filter(d => d.program === '백지도 그리기' || d.program === '지도 겹치기' || d.program === '타임머신 역사 지도');
             
             if(sch !== 'all') filtered = filtered.filter(d => d.school === sch);
             if(grd !== 'all') filtered = filtered.filter(d => String(d.grade) === String(grd));
