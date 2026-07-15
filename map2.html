@@ -55,7 +55,8 @@
 
         aside { flex: 1; max-width: 420px; display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
         
-        .control-box { background: var(--panel); border-radius: var(--radius-box); padding: 15px 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+        /* 💡 수정된 부분: 부모 상자가 무한정 늘어나지 않도록 min-height: 0;을 추가했습니다 */
+        .control-box { background: var(--panel); border-radius: var(--radius-box); padding: 15px 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); display: flex; flex-direction: column; min-height: 0; }
         .control-box h3 { margin: 0 0 10px 0; font-size: 1.15rem; color: var(--primary); text-align: center; border-bottom: 2px dashed var(--border); padding-bottom: 8px; flex-shrink: 0; }
 
         .layer-list { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
@@ -68,7 +69,11 @@
         .tab-btn { flex: 1; padding: 10px; font-size: 1.05rem; border: none; background: #F0F3F4; color: #7F8C8D; border-radius: 12px; cursor: pointer; font-family: 'Jua', sans-serif; transition: 0.2s; }
         .tab-btn.active { background: #D1F2EB; color: #117A65; font-weight: bold; border: 2px solid #1ABC9C; }
 
-        .sticker-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1; overflow: hidden; align-content: start; }
+        /* 💡 수정된 부분: 넘치는 내용을 자르지 않고 스크롤이 생기도록 설정했습니다 */
+        .sticker-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1; overflow-y: auto; align-content: start; min-height: 0; padding-right: 4px; }
+        .sticker-container::-webkit-scrollbar { width: 6px; }
+        .sticker-container::-webkit-scrollbar-thumb { background: #D5D8DC; border-radius: 10px; }
+        
         .sticker-item { background: #FDFDFD; border: 2px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; height: 45px; cursor: pointer; transition: 0.2s; font-size: 1.6rem; }
         .sticker-item:hover, .sticker-item.selected { border-color: var(--primary); background: #E8F8F5; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
 
