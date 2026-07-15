@@ -68,17 +68,7 @@
         .tab-btn { flex: 1; padding: 10px; font-size: 1.05rem; border: none; background: #F0F3F4; color: #7F8C8D; border-radius: 12px; cursor: pointer; font-family: 'Jua', sans-serif; transition: 0.2s; }
         .tab-btn.active { background: #D1F2EB; color: #117A65; font-weight: bold; border: 2px solid #1ABC9C; }
 
-        .sticker-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1; overflow-y: auto; align-content: start; padding-right: 5px; min-height: 0; }
-        .sticker-container::-webkit-scrollbar {width: 8px;}
-        .sticker-container::-webkit-scrollbar-track {background: #F4F6F6; border-radius: 8px;
-}
-.sticker-container::-webkit-scrollbar-thumb {
-    background: #BDC3C7; 
-    border-radius: 8px;
-}
-.sticker-container::-webkit-scrollbar-thumb:hover {
-    background: var(--primary); /* 마우스를 올리면 포인트 컬러로 변경 */
-}
+        .sticker-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1; overflow: hidden; align-content: start; }
         .sticker-item { background: #FDFDFD; border: 2px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; height: 45px; cursor: pointer; transition: 0.2s; font-size: 1.6rem; }
         .sticker-item:hover, .sticker-item.selected { border-color: var(--primary); background: #E8F8F5; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
 
