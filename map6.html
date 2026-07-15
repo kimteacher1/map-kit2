@@ -174,7 +174,7 @@
     <script>
         const BASE_URL = "https://kimteacher1.github.io/map-history/";
 
-        // 💡 클라이언트님 요청 파일명 완벽하게 적용
+        // 💡 클라이언트님 요청 파일명 완벽하게 적용 + 조선시대/대한민국 추가 파일 반영
         const historyConfig = [
             {
                 id: 1, name: "선사시대", base: "동북아시아-백지도.png",
@@ -218,7 +218,8 @@
                 id: 6, name: "조선시대", base: "한국-백지도.png",
                 layers: [
                     {file: "6-조선초기.png", name: "조선 초기"},
-                    {file: "6-4군6진.png", name: "4군 6진"}
+                    {file: "6-4군6진.png", name: "4군 6진"},
+                    {file: "6-조선영토.png", name: "세종 이후"}
                 ]
             },
             {
@@ -230,7 +231,10 @@
             },
             {
                 id: 8, name: "대한민국", base: "한국-백지도.png",
-                layers: []
+                layers: [
+                    {file: "8-대한민국.png", name: "6.25 전쟁 이전"},
+                    {file: "8-대한민국2.png", name: "6.25 전쟁 이후"}
+                ]
             }
         ];
 
@@ -438,7 +442,7 @@
         function toggleBlindMode() { isBlindMode = !isBlindMode; document.getElementById('btn-blind').classList.toggle('active', isBlindMode); redraw(); }
 
         function clearDrawings() {
-            if(confirm("그린 펜 자국과 스티커를 싹 지울까요?")) {
+            if(confirm("그린 펜 자국과 스티커를 싹 지울까요? (영토는 유지됩니다)")) {
                 state.stickers = [];
                 drawCtx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
                 resetCurveState();
@@ -677,7 +681,8 @@
                 } else {
                     saveHistory(); // 지우개 종료 시 스냅샷
                 }
-                activeLine = null; redraw();
+                activeLine = null;  
+                redraw();
             }
 
             if (draggingStickerIdx !== -1) {
