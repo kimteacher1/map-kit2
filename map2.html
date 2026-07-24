@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>&lt;MAP KIT&gt; 지도 겹치기</title>
+    <title>&lt;MAP KIT&gt; 지도 겹치기 (프로 버전)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         
@@ -32,57 +32,67 @@
 
         .btn-help { background: #FEF9E7; color: #D35400; padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); transition: 0.3s; border: none; font-family: 'Jua', sans-serif; font-weight: bold; }
         .btn-back { background: #E74C3C; color: white; padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); transition: 0.3s; border: none; font-family: 'Jua', sans-serif; font-weight: bold; margin-left: 5px; }
-        
-        .mode-container { display: flex; background: #EAEDED; border-radius: 16px; padding: 4px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);}
-        .mode-btn { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; color: #7F8C8D; border-radius: 12px; transition: 0.3s; }
-        .mode-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(26, 188, 156, 0.4); }
 
-        .toggle-btn { padding: 10px 15px; font-size: 1rem; cursor: pointer; color: #95A5A6; transition: 0.3s; border-radius: 12px; margin-left: 10px; background: #EAEDED;}
+        .toggle-btn { padding: 10px 15px; font-size: 1rem; cursor: pointer; color: #95A5A6; transition: 0.3s; border-radius: 12px; margin-left: 10px; background: #EAEDED; font-family: 'Jua', sans-serif; border:none;}
         .toggle-btn.active { background: #5DADE2; color: white; }
 
         main { flex: 1; display: flex; overflow: hidden; padding: 15px; gap: 15px; }
 
         #map-viewport { flex: 3; position: relative; background: #FFFFFF; border-radius: var(--radius-box); box-shadow: inset 0 4px 20px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; cursor: grab; }
         #map-viewport:active { cursor: grabbing; }
-        #map-viewport.stamp-mode { cursor: crosshair; }
-        #map-viewport.stamp-mode:active { cursor: crosshair; }
         canvas { display: block; width: 100%; height: 100%; touch-action: none; }
         
         #loading-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: bold; color: var(--primary); pointer-events: none; background: rgba(255,255,255,0.95); padding: 20px 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; line-height: 1.5; z-index: 200; border: 2px solid var(--primary); }
 
         .zoom-controls { position: absolute; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 8px; }
         .zoom-btn { background: white; border: 2px solid var(--border); border-radius: 10px; padding: 10px; font-size: 1.1rem; color: var(--text); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); transition: 0.2s; font-family: 'Jua', sans-serif; font-weight: bold; width: 100px; text-align: center; }
+        .zoom-btn:hover { border-color: var(--primary); color: var(--primary); }
 
-        aside { flex: 1; max-width: 420px; display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
+        /* map6 스타일의 사이드바 디자인 */
+        aside { flex: 1; max-width: 420px; background: var(--panel); border-radius: var(--radius-box); padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
         
-        /* 💡 수정된 부분: 부모 상자가 무한정 늘어나지 않도록 min-height: 0;을 추가했습니다 */
-        .control-box { background: var(--panel); border-radius: var(--radius-box); padding: 15px 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.04); display: flex; flex-direction: column; min-height: 0; }
-        .control-box h3 { margin: 0 0 10px 0; font-size: 1.15rem; color: var(--primary); text-align: center; border-bottom: 2px dashed var(--border); padding-bottom: 8px; flex-shrink: 0; }
+        .layer-section { background: #F8F9F9; padding: 15px; border-radius: 16px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; max-height: 20vh; overflow-y: auto;}
+        .layer-section::-webkit-scrollbar { width: 6px; }
+        .layer-section::-webkit-scrollbar-thumb { background: #D5D8DC; border-radius: 10px; }
+        .layer-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+        .layer-item input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--primary); cursor: pointer; flex-shrink: 0; }
+        .layer-item label { font-size: 1.1rem; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #2C3E50; cursor: pointer; }
+        .layer-item input[type="range"] { width: 80px; accent-color: var(--primary); cursor: pointer; }
 
-        .layer-list { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-        .layer-item { display: flex; align-items: center; gap: 8px; background: #FDFDFD; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border); transition: 0.2s; }
-        .layer-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
-        .layer-item label { flex: 1; font-size: 1.05rem; cursor: pointer; white-space: nowrap; }
-        .layer-item input[type="range"] { width: 75px; accent-color: var(--primary); cursor: pointer; }
-
-        .tab-menu { display: flex; gap: 5px; margin-bottom: 10px; flex-shrink: 0; }
-        .tab-btn { flex: 1; padding: 10px; font-size: 1.05rem; border: none; background: #F0F3F4; color: #7F8C8D; border-radius: 12px; cursor: pointer; font-family: 'Jua', sans-serif; transition: 0.2s; }
-        .tab-btn.active { background: #D1F2EB; color: #117A65; font-weight: bold; border: 2px solid #1ABC9C; }
-
-        /* 💡 수정된 부분: 넘치는 내용을 자르지 않고 스크롤이 생기도록 설정했습니다 */
-        .sticker-container { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1; overflow-y: auto; align-content: start; min-height: 0; padding-right: 4px; }
-        .sticker-container::-webkit-scrollbar { width: 6px; }
-        .sticker-container::-webkit-scrollbar-thumb { background: #D5D8DC; border-radius: 10px; }
+        .tool-section { display: flex; flex-direction: column; }
+        .tool-section h3 { margin: 0 0 10px 0; font-size: 1.15rem; color: var(--primary); text-align: center; border-bottom: 2px dashed #E5E7E9; padding-bottom: 8px;}
         
-        .sticker-item { background: #FDFDFD; border: 2px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; height: 45px; cursor: pointer; transition: 0.2s; font-size: 1.6rem; }
-        .sticker-item:hover, .sticker-item.selected { border-color: var(--primary); background: #E8F8F5; transform: scale(1.1); box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
+        .color-picker-group { display: flex; gap: 6px; align-items: center; justify-content: center; background: #F4F6F7; padding: 8px; border-radius: 14px; margin-bottom: 10px;}
+        .color-preset { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 2px solid #BDC3C7; transition: 0.2s; }
+        .color-preset:hover, .color-preset.active { transform: scale(1.15); border-color: #2C3E50; }
+        #custom-color { width: 36px; height: 36px; padding: 0; border: none; border-radius: 8px; cursor: pointer; background: transparent;}
 
-        #tab-content-text { grid-template-columns: repeat(3, 1fr); }
-        #tab-content-text .sticker-item { height: 40px; font-size: 1.1rem; color: #2980B9; }
-
-        .btn-clear { width: 100%; padding: 10px; background: #FDEDEC; color: #E74C3C; border: none; border-radius: 12px; font-size: 1.1rem; font-family: 'Jua', sans-serif; cursor: pointer; margin-top: 10px; transition: 0.2s; flex-shrink: 0; }
+        .btn-grid { display: grid; gap: 6px; margin-bottom: 6px; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
         
-        footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; flex-shrink: 0; gap: 10px;}
+        .tool-btn { padding: 10px 4px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; font-size: 1rem; font-family: 'Jua', sans-serif; color: var(--text); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .tool-btn.selected { border-color: var(--primary); background: #E8F8F5; color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(26, 188, 156, 0.2);}
+        .action-btn { background: #FDFEFE; color: #7F8C8D; border-color: #D5D8DC; }
+        
+        .slider-container { display: flex; align-items: center; gap: 10px; background: #F8F9F9; padding: 10px 15px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 5px; }
+        .slider-container label { font-size: 1rem; color: var(--text); font-weight: bold; white-space: nowrap;}
+        .slider-container input[type="range"] { flex: 1; accent-color: var(--primary); cursor: pointer; }
+
+        /* 추가된 탭 메뉴 스타일 */
+        .tab-menu { display: flex; gap: 5px; margin-bottom: 8px; flex-shrink: 0; }
+        .tab-btn { flex: 1; padding: 10px; font-size: 1.05rem; border: 2px solid transparent; background: #F0F3F4; color: #7F8C8D; border-radius: 12px; cursor: pointer; font-family: 'Jua', sans-serif; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .tab-btn.active { background: #E8F8F5; color: #117A65; font-weight: bold; border-color: #1ABC9C; }
+
+        .sticker-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; overflow-y: auto; align-content: start; flex: 1; padding-right: 4px; padding-bottom: 10px; }
+        .sticker-list::-webkit-scrollbar { width: 6px; }
+        .sticker-list::-webkit-scrollbar-thumb { background: #D5D8DC; border-radius: 10px; }
+
+        .sticker-item { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 55px; border: 2px solid transparent; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 0.8rem; background: #FDFDFD; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .sticker-item:hover, .sticker-item.selected { background: #E8F8F5; border-color: var(--primary); transform: scale(1.05); }
+        .sticker-emoji { font-size: 1.5rem; margin-bottom: 2px; }
+
+        footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; gap: 10px;}
         .btn-action { color: white; border: none; padding: 12px 25px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
         #download-btn { background: #95A5A6; }
         #download-btn:hover { background: #7F8C8D; transform: translateY(-3px); }
@@ -93,6 +103,8 @@
         .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%; position: relative; font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
         .modal-content h2 { color: var(--primary); margin-top: 0; font-family: 'Jua', sans-serif; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
         .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
+        
+        #curve-hint { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #F1C40F; padding: 8px 20px; border-radius: 20px; font-size: 1.1rem; display: none; z-index: 200; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -102,9 +114,9 @@
             <button class="close-modal" onclick="document.getElementById('help-modal').style.display='none'">X</button>
             <h2>📖 &lt;MAP KIT&gt; 지도 겹치기 사용법</h2>
             <ul>
-                <li><b>레이어 겹치기:</b> 우측 패널에서 각 레이어의 체크박스와 투명도(슬라이더)를 조절하여 지형과 인구, 산업 간의 관계를 분석해보세요.</li>
-                <li><b>스티커 및 지명 쓰기:</b> 기호 스티커를 붙이거나 <b>'✍️ 직접 입력하기'</b>로 이름을 써보세요.</li>
-                <li><b>제출 및 저장:</b> 분석을 마치면 [다운로드] 버튼으로 기기에 저장하거나, [선생님께 제출하기] 버튼으로 활동 내용을 런처로 보낼 수 있습니다.</li>
+                <li><b>레이어 겹치기:</b> 우측 패널에서 투명도를 조절해 지형/인구 관계를 파악하세요.</li>
+                <li><b>강력한 펜 그리기:</b> 곡선/직선 화살표와 일반 펜을 사용해 작전 지도를 꾸며보세요.</li>
+                <li><b>개별 스티커 크기:</b> 스티커를 찍기 전이나, <b>찍은 후 스티커를 클릭한 상태에서</b> 크기 슬라이더를 조절하면 개별 크기가 적용됩니다!</li>
             </ul>
         </div>
     </div>
@@ -121,17 +133,14 @@
             <button class="btn-back" onclick="if(window.parent && window.parent.closeApp) window.parent.closeApp(); else history.back();">🔙 메뉴로 돌아가기</button>
         </div>
         
-        <div style="display: flex; align-items: center;">
-            <div class="mode-container">
-                <div class="mode-btn active" id="mode-pan" onclick="setMode('pan')">✋ 화면 이동</div>
-                <div class="mode-btn" id="mode-stamp" onclick="setMode('stamp')">👆 스티커 찍기</div>
-            </div>
-            <div class="toggle-btn active" id="toggle-text" onclick="toggleText()">✅ 범례 표시</div>
+        <div>
+            <button class="toggle-btn active" id="toggle-text" onclick="toggleText()">✅ 범례 표시</button>
         </div>
     </header>
 
     <main>
         <div id="map-viewport">
+            <div id="curve-hint">👆 선의 가운데를 클릭한 채 드래그하여 곡선을 구부리세요!</div>
             <div id="loading-msg">지도를 불러오는 중이에요!<br><span style="font-size:1rem; color:#7F8C8D; font-weight:normal;" id="loading-sub"></span></div>
             <canvas id="mapCanvas"></canvas>
             
@@ -143,28 +152,61 @@
         </div>
 
         <aside>
-            <div class="control-box">
-                <h3>주제도 겹쳐보기 (투명도 조절)</h3>
-                <div class="layer-list" id="layer-controls"></div>
+            <div id="layer-container" class="layer-section">
+                <!-- 동적 레이어 생성 -->
             </div>
 
-            <div class="control-box" style="flex: 1;">
-                <h3>스티커 및 이름 쓰기 (드래그:이동 / 클릭:변경)</h3>
+            <div class="tool-section" style="margin-top: 5px;">
+                <h3>⚔️ 지도 제작 도구</h3>
                 
-                <div class="slider-container" style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px; background: #F8F9F9; padding: 10px; border-radius: 12px; border: 1px solid var(--border);">
-                    <label for="sticker-size-slider" style="font-size: 1rem; color: var(--primary); white-space: nowrap; font-weight: bold;">📐 스티커 크기</label>
-                    <input type="range" id="sticker-size-slider" min="0.5" max="2" step="0.1" value="1" style="flex: 1; accent-color: var(--primary); cursor: pointer;" oninput="redraw()">
+                <div class="color-picker-group">
+                    <div class="color-preset active" style="background:#FF66CC;" onclick="setColor('#FF66CC', this)" title="분홍"></div>
+                    <div class="color-preset" style="background:#87CEEB;" onclick="setColor('#87CEEB', this)" title="하늘"></div>
+                    <div class="color-preset" style="background:#90EE90;" onclick="setColor('#90EE90', this)" title="연두"></div>
+                    <div class="color-preset" style="background:#FFD700;" onclick="setColor('#FFD700', this)" title="노랑"></div>
+                    <div class="color-preset" style="background:#34495E;" onclick="setColor('#34495E', this)" title="검정"></div>
+                    <input type="color" id="custom-color" value="#E74C3C" onchange="setColor(this.value, null)">
                 </div>
 
+                <div class="btn-grid grid-2">
+                    <button class="tool-btn action-btn" id="btn-undo" onclick="undo()" style="opacity: 0.4;">↩️ 취소</button>
+                    <button class="tool-btn action-btn" id="btn-redo" onclick="redo()" style="opacity: 0.4;">↪️ 복구</button>
+                </div>
+                
+                <div class="btn-grid grid-3">
+                    <button class="tool-btn" id="tool-arrow-curve" onclick="setTool('arrow-curve')">↪️곡선 화살표</button>
+                    <button class="tool-btn" id="tool-arrow-straight" onclick="setTool('arrow-straight')">📏직선 화살표</button>
+                    <button class="tool-btn" id="tool-free" onclick="setTool('free')">✍️일반 펜</button>
+                </div>
+                <div class="btn-grid grid-3">
+                    <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')">🧽 지우개</button>
+                    <button class="tool-btn selected" id="tool-pan" onclick="setTool('pan')">🤚 이동</button>
+                    <button class="tool-btn" onclick="clearDrawings()" style="color: #E74C3C; font-weight:bold;">🗑️ 싹지우기</button>
+                </div>
+                
+                <div class="slider-container">
+                    <label>펜 굵기</label>
+                    <input type="range" id="line-width-slider" min="0.3" max="4" step="0.1" value="1.5">
+                </div>
+                <div class="slider-container" style="background: #E8F8F5; border-color: var(--primary);">
+                    <label style="color: var(--primary-hover);">개별 스티커 크기</label>
+                    <input type="range" id="sticker-size-slider" min="0.5" max="3" step="0.1" value="1" oninput="updateStickerSize(this.value)">
+                </div>
+            </div>
+
+            <div class="tool-section" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <h3 style="margin-bottom: 5px;">👑 스티커 팩 </h3>
+                
+                <!-- 탭 버튼 추가 영역 -->
                 <div class="tab-menu">
-                    <button class="tab-btn active" id="btn-mode-icon" onclick="setStickerMode('icon')">🎨 기호 스티커</button>
-                    <button class="tab-btn" id="btn-mode-text" onclick="setStickerMode('text')">📝 이름 스티커</button>
+                    <button class="tab-btn active" id="btn-tab-icon" onclick="switchTab('icon')">🎨 기호 스티커</button>
+                    <button class="tab-btn" id="btn-tab-text" onclick="switchTab('text')">📝 이름 스티커</button>
                 </div>
 
-                <div class="sticker-container" id="icon-pack-container"></div>
-                <div class="sticker-container" id="tab-content-text" style="display: none;"></div>
-                
-                <button class="btn-clear" onclick="clearStickers()">🗑️ 지도 위 스티커 모두 지우기</button>
+                <!-- 탭별 콘텐츠 영역 분리 -->
+                <div class="sticker-list" id="icon-pack-container"></div>
+                <div class="sticker-list" id="text-pack-container" style="display: none;"></div>
+
             </div>
         </aside>
     </main>
@@ -175,6 +217,7 @@
     </footer>
 
     <script>
+        // 🚨 절대 수정 금지 구역 시작 (기존 데이터 완벽 보존)
         const GITHUB_BASE_URL = "https://kimteacher1.github.io/korea-map-layer/";
 
         const mapConfigs = {
@@ -228,13 +271,56 @@
 
         const domesticTexts = ["태백산맥", "소백산맥", "호남평야", "나주평야", "한강", "낙동강", "금강", "영산강", "서울특별시", "부산광역시", "제주특별자치도"];
         const worldTexts = ["태평양", "대서양", "인도양", "남극해", "북극해", "아시아", "유럽", "아프리카", "북아메리카", "남아메리카", "오세아니아", "남극대륙"];
+        // 🚨 절대 수정 금지 구역 끝
 
-        let selectedSticker = null; let stickerMode = 'icon'; 
-        let stickers = []; let hoverIdx = -1; let showText = true;
+        const cvs = document.getElementById('mapCanvas');
+        const ctx = cvs.getContext('2d');
+        const msg = document.getElementById('loading-msg'); 
+        const viewport = document.getElementById('map-viewport');
+        
+        // 💡 듀얼 캔버스 시스템 (map6 엔진 이식)
+        let drawCanvas = document.createElement('canvas');
+        let drawCtx = drawCanvas.getContext('2d');
+        let tempCanvas = document.createElement('canvas');
+        let tempCtx = tempCanvas.getContext('2d');
+
+        let historyStack = []; let stickerHistoryStack = []; let historyStep = -1;
+        let curveState = 0; let curvePts = { p0: null, p1: null, p2: null }; 
+
+        let loadedLayers = {};
+        let scale = 1, panX = 0, panY = 0;
+        let isDraggingMap = false, startX, startY;
+        
+        let curTool = 'pan'; 
+        let curColor = '#FF66CC';
+        let curIcon = null;
+        let isDrawing = false;
+        let activeLine = null;
+
+        let stickers = []; 
+        let hoverIdx = -1; 
+        let showText = true;
+        let draggingSticker = null;
+        let stickerMoved = false;
+
+        // 탭 전환 로직
+        function switchTab(tab) {
+            document.getElementById('btn-tab-icon').classList.toggle('active', tab === 'icon');
+            document.getElementById('btn-tab-text').classList.toggle('active', tab === 'text');
+            document.getElementById('icon-pack-container').style.display = tab === 'icon' ? 'grid' : 'none';
+            document.getElementById('text-pack-container').style.display = tab === 'text' ? 'grid' : 'none';
+        }
+
+        function updateStickerSize(val) {
+            if (draggingSticker) {
+                draggingSticker.scale = parseFloat(val);
+                redraw();
+            }
+        }
 
         function buildUI(mapPrefix) {
             const config = mapConfigs[mapPrefix];
-            const layerBox = document.getElementById('layer-controls');
+            const layerBox = document.getElementById('layer-container');
             
             layerBox.innerHTML = `
                 <div class="layer-item">
@@ -247,7 +333,7 @@
                 layerBox.innerHTML += `
                     <div class="layer-item">
                         <input type="checkbox" id="chk-${l.id}" onchange="redraw()">
-                        <label>${l.emoji} ${l.name}</label>
+                        <label title="${l.name}">${l.emoji} ${l.name}</label>
                         <input type="range" id="op-${l.id}" min="0" max="1" step="0.1" value="0.8" oninput="redraw()">
                     </div>
                 `;
@@ -258,79 +344,121 @@
             const activeTexts = isWorld ? worldTexts : domesticTexts;
             
             const iconContainer = document.getElementById('icon-pack-container');
+            const textContainer = document.getElementById('text-pack-container');
+            
             iconContainer.innerHTML = '';
-            activeIcons.forEach(item => {
-                const div = document.createElement('div'); div.className = 'sticker-item';
-                div.title = item.t; div.innerHTML = item.e;
-                div.onclick = () => {
-                    document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
-                    div.classList.add('selected');
-                    selectedSticker = { type: 'icon', e: item.e, t: item.t };
-                    setStickerMode('icon'); setMode('stamp'); 
-                };
-                iconContainer.appendChild(div);
-            });
-
-            const textContainer = document.getElementById('tab-content-text');
             textContainer.innerHTML = '';
             
+            // 이름 탭 - 직접 입력 텍스트 버튼 (맨 앞)
             const customDiv = document.createElement('div'); 
             customDiv.className = 'sticker-item';
-            customDiv.style.gridColumn = 'span 3';
+            customDiv.style.gridColumn = 'span 4';
             customDiv.style.background = '#E8F8F5';
             customDiv.style.color = '#1ABC9C';
             customDiv.style.fontWeight = 'bold';
-            customDiv.innerHTML = '✍️ 직접 입력하기';
+            customDiv.style.height = '40px';
+            customDiv.innerHTML = '✍️ 직접 글씨 입력하기';
             customDiv.onclick = () => {
+                setTool('custom-text'); curIcon = null;
                 document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
                 customDiv.classList.add('selected');
-                selectedSticker = { type: 'custom-text' };
-                setMode('stamp'); 
             };
             textContainer.appendChild(customDiv);
 
+            // 이름 탭 - 주요 지명 텍스트 (2칸씩 차지)
             activeTexts.forEach(t => {
                 const div = document.createElement('div'); div.className = 'sticker-item';
-                div.innerHTML = t;
+                div.style.gridColumn = 'span 2';
+                div.style.height = '40px';
+                div.innerHTML = `<span style="font-size:1.05rem; font-weight:bold; color:#2980B9;">${t}</span>`;
                 div.onclick = () => {
+                    setTool('text-only'); curIcon = { text: t };
                     document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
                     div.classList.add('selected');
-                    selectedSticker = { type: 'text-only', text: t };
-                    setMode('stamp'); 
                 };
                 textContainer.appendChild(div);
             });
+
+            // 기호 탭 - 아이콘들
+            activeIcons.forEach(item => {
+                const div = document.createElement('div'); div.className = 'sticker-item';
+                div.title = item.t; 
+                div.innerHTML = `<div class="sticker-emoji">${item.e}</div><div>${item.t}</div>`;
+                div.onclick = () => {
+                    setTool('icon'); curIcon = { e: item.e, t: item.t };
+                    document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
+                    div.classList.add('selected');
+                };
+                iconContainer.appendChild(div);
+            });
         }
 
-        function setStickerMode(mode) {
-            stickerMode = mode;
-            document.getElementById('btn-mode-icon').classList.toggle('active', mode === 'icon');
-            document.getElementById('btn-mode-text').classList.toggle('active', mode === 'text');
-            document.getElementById('icon-pack-container').style.display = mode === 'icon' ? 'grid' : 'none';
-            document.getElementById('tab-content-text').style.display = mode === 'text' ? 'grid' : 'none';
+        // --- Undo / Redo 엔진 ---
+        function saveHistory() {
+            historyStep++;
+            historyStack = historyStack.slice(0, historyStep);
+            stickerHistoryStack = stickerHistoryStack.slice(0, historyStep);
             
-            if (mode === 'text') {
-                document.querySelectorAll('.sticker-item').forEach(el => el.classList.remove('selected'));
-                selectedSticker = { type: 'text-only' }; 
-                setMode('stamp');
-            } else if (selectedSticker && (selectedSticker.type === 'text-only' || selectedSticker.type === 'custom-text')) {
-                selectedSticker = null; 
+            historyStack.push(drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
+            stickerHistoryStack.push(JSON.parse(JSON.stringify(stickers)));
+            updateHistoryBtns();
+        }
+
+        function undo() {
+            if(historyStep > 0) {
+                historyStep--;
+                drawCtx.putImageData(historyStack[historyStep], 0, 0);
+                stickers = JSON.parse(JSON.stringify(stickerHistoryStack[historyStep]));
+                resetCurveState(); redraw(); updateHistoryBtns();
             }
         }
 
-        function clearStickers() { if(confirm("지도 위의 스티커를 모두 지울까요?")) { stickers = []; redraw(); } }
-        function toggleText() { showText = !showText; const btn = document.getElementById('toggle-text'); btn.classList.toggle('active', showText); btn.innerText = showText ? "✅ 범례 표시" : "❌ 범례 숨김"; redraw(); }
+        function redo() {
+            if(historyStep < historyStack.length - 1) {
+                historyStep++;
+                drawCtx.putImageData(historyStack[historyStep], 0, 0);
+                stickers = JSON.parse(JSON.stringify(stickerHistoryStack[historyStep]));
+                resetCurveState(); redraw(); updateHistoryBtns();
+            }
+        }
 
-        const cvs = document.getElementById('mapCanvas'); const ctx = cvs.getContext('2d');
-        const msg = document.getElementById('loading-msg'); const viewport = document.getElementById('map-viewport');
-        
-        let loadedLayers = {};
-        let scale = 1, panX = 0, panY = 0;
-        let isDraggingMap = false, startX, startY;
-        let currentMode = 'pan'; 
-        
-        let draggingSticker = null;
-        let stickerMoved = false;
+        function updateHistoryBtns() {
+            document.getElementById('btn-undo').style.opacity = historyStep > 0 ? "1" : "0.4";
+            document.getElementById('btn-redo').style.opacity = historyStep < historyStack.length - 1 ? "1" : "0.4";
+        }
+
+        function resetCurveState() {
+            curveState = 0; document.getElementById('curve-hint').style.display = 'none';
+            tempCtx.clearRect(0,0,tempCanvas.width, tempCanvas.height);
+        }
+
+        function setTool(t) {
+            curTool = t; 
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+            if(document.getElementById('tool-' + t)) document.getElementById('tool-' + t).classList.add('selected');
+            if(t !== 'icon' && t !== 'text-only' && t !== 'custom-text') {
+                document.querySelectorAll('.sticker-item').forEach(b => b.classList.remove('selected'));
+                curIcon = null;
+            }
+            resetCurveState();
+            cvs.style.cursor = (t === 'pan') ? 'grab' : (['icon', 'text-only', 'custom-text'].includes(t) ? 'crosshair' : 'crosshair');
+        }
+
+        function setColor(color, btn) {
+            curColor = color;
+            document.querySelectorAll('.color-preset').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active');
+        }
+
+        function clearDrawings() {
+            if(confirm("그린 펜 자국과 스티커를 싹 지울까요? (지도는 유지됩니다)")) {
+                stickers = [];
+                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                resetCurveState(); saveHistory(); redraw();
+            }
+        }
+
+        function toggleText() { showText = !showText; const btn = document.getElementById('toggle-text'); btn.classList.toggle('active', showText); btn.innerText = showText ? "✅ 범례 표시" : "❌ 범례 숨김"; redraw(); }
 
         function loadMap() {
             const mapPrefix = document.getElementById('map-region').value;
@@ -345,22 +473,32 @@
             let loadedCount = 0;
 
             toLoad.forEach(layer => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
+                const img = new Image(); img.crossOrigin = "Anonymous";
                 const url = `${GITHUB_BASE_URL}${mapPrefix}-${layer.name}${config.fileSuffix}`;
                 
-                img.onload = () => { loadedLayers[layer.id] = img; loadedCount++; if(loadedCount === toLoad.length) { msg.style.display = 'none'; resetZoom(); } };
-                img.onerror = () => { loadedCount++; console.error(`로드 실패: ${url}`); if(loadedCount === toLoad.length) { msg.style.display = 'none'; resetZoom(); } };
+                img.onload = () => { 
+                    loadedLayers[layer.id] = img; loadedCount++; 
+                    if(loadedCount === toLoad.length) finalizeLoad(); 
+                };
+                img.onerror = () => { 
+                    loadedCount++; console.error(`로드 실패: ${url}`); 
+                    if(loadedCount === toLoad.length) finalizeLoad(); 
+                };
                 img.src = url;
             });
-            stickers = []; 
         }
 
-        function setMode(mode) {
-            currentMode = mode;
-            document.getElementById('mode-pan').classList.toggle('active', mode === 'pan');
-            document.getElementById('mode-stamp').classList.toggle('active', mode === 'stamp');
-            viewport.classList.toggle('stamp-mode', mode === 'stamp');
+        function finalizeLoad() {
+            let refImg = loadedLayers['base'] || Object.values(loadedLayers)[0];
+            if (refImg && refImg.naturalWidth) {
+                drawCanvas.width = tempCanvas.width = refImg.naturalWidth;
+                drawCanvas.height = tempCanvas.height = refImg.naturalHeight;
+            }
+            msg.style.display = 'none';
+            stickers = []; 
+            historyStack = []; stickerHistoryStack = []; historyStep = -1;
+            drawCtx.clearRect(0,0,drawCanvas.width, drawCanvas.height);
+            saveHistory(); resetZoom();
         }
 
         function zoom(factor) {
@@ -390,40 +528,131 @@
             scale = newScale; redraw();
         });
 
+        // 💡 렌더링 엔진 (map6 기반)
+        function drawSmoothLine(context, pts, type, color, w) {
+            if (pts.length === 0) return;
+            
+            context.beginPath(); context.moveTo(pts[0].x, pts[0].y);
+
+            let pLast = pts[pts.length - 1];
+            let pPrev = pts.length > 1 ? pts[pts.length - 2] : pts[0];
+            let angle = Math.atan2(pLast.y - pPrev.y, pLast.x - pPrev.x);
+            
+            let headlen = (type === 'arrow-curve' || type === 'arrow-straight') ? (w * 8 + 10) : 0;
+            let lineEndX = pLast.x - headlen * 0.8 * Math.cos(angle);
+            let lineEndY = pLast.y - headlen * 0.8 * Math.sin(angle);
+
+            if (type === 'arrow-straight') {
+                context.lineTo(lineEndX, lineEndY);
+            } else if (type === 'arrow-curve') {
+                if(curvePts.p1) {
+                    angle = Math.atan2(pLast.y - curvePts.p1.y, pLast.x - curvePts.p1.x);
+                    lineEndX = pLast.x - headlen * 0.8 * Math.cos(angle);
+                    lineEndY = pLast.y - headlen * 0.8 * Math.sin(angle);
+                    context.quadraticCurveTo(curvePts.p1.x, curvePts.p1.y, lineEndX, lineEndY);
+                } else {
+                    context.lineTo(lineEndX, lineEndY);
+                }
+            } else {
+                if (pts.length === 1) { context.lineTo(pts[0].x + 0.1, pts[0].y); } 
+                else {
+                    for (let i = 1; i < pts.length - 2; i++) {
+                        let xc = (pts[i].x + pts[i + 1].x) / 2; let yc = (pts[i].y + pts[i + 1].y) / 2;
+                        context.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+                    }
+                    context.quadraticCurveTo(pPrev.x, pPrev.y, lineEndX, lineEndY);
+                }
+            }
+
+            if(type === 'eraser') {
+                context.globalCompositeOperation = 'destination-out';
+                context.strokeStyle = "rgba(0,0,0,1)";
+                context.lineWidth = 50 * w; // 지우개 굵기 보정
+                context.lineCap = "round";
+            } else {
+                context.globalCompositeOperation = 'source-over';
+                context.strokeStyle = color || '#000';
+                context.lineWidth = 8 * w; // 펜 굵기 보정
+                context.lineCap = (type === 'arrow-curve' || type === 'arrow-straight') ? "butt" : "round"; 
+            }
+            context.lineJoin = "round"; context.stroke();
+
+            // 화살표 머리 렌더링
+            if ((type === 'arrow-curve' || type === 'arrow-straight') && pts.length > 1) {
+                headlen = 35 * w; 
+                context.beginPath();
+                context.moveTo(pLast.x, pLast.y);
+                context.lineTo(pLast.x - headlen * Math.cos(angle - Math.PI / 7), pLast.y - headlen * Math.sin(angle - Math.PI / 7));
+                context.lineTo(pLast.x - headlen * Math.cos(angle + Math.PI / 7), pLast.y - headlen * Math.sin(angle + Math.PI / 7));
+                context.closePath(); 
+                context.fillStyle = color || '#000';
+                context.globalCompositeOperation = 'source-over';
+                context.fill();
+            }
+        }
+
         const pointerDown = (e) => {
             const mx = (e.clientX || e.touches[0].clientX) - cvs.getBoundingClientRect().left;
             const my = (e.clientY || e.touches[0].clientY) - cvs.getBoundingClientRect().top;
-            const ss = parseFloat(document.getElementById('sticker-size-slider').value) || 1;
+            
+            const rx = (mx - panX) / scale; const ry = (my - panY) / scale;
+            const p = {x: rx, y: ry};
+            const currentGlobalScale = parseFloat(document.getElementById('sticker-size-slider').value) || 1;
 
+            // 스티커 선택 및 삭제 판정
             for (let i = stickers.length - 1; i >= 0; i--) {
                 const s = stickers[i];
                 const sx = s.realX * scale + panX; const sy = s.realY * scale + panY;
-                
-                if (hoverIdx === i && Math.hypot(mx - (sx + (18 * ss)), my - (sy - (18 * ss))) < 25) {
-                    stickers.splice(i, 1); hoverIdx = -1; redraw(); return; 
+                const sScale = s.scale || 1; 
+
+                if (hoverIdx === i && Math.hypot(mx - (sx + (18 * sScale * scale)), my - (sy - (18 * sScale * scale))) < 25) {
+                    stickers.splice(i, 1); hoverIdx = -1; saveHistory(); redraw(); return; 
                 }
             }
 
             if (hoverIdx !== -1) {
-                draggingSticker = stickers[hoverIdx]; stickerMoved = false; return; 
+                draggingSticker = stickers[hoverIdx]; stickerMoved = false; 
+                // 💡 클릭한 스티커의 사이즈로 슬라이더 값 동기화!
+                document.getElementById('sticker-size-slider').value = draggingSticker.scale || 1;
+                return; 
             }
 
-            if (currentMode === 'pan') {
-                isDraggingMap = true; startX = mx - panX; startY = my - panY;
-            } else if (currentMode === 'stamp' && selectedSticker) {
-                const rx = (mx - panX) / scale; const ry = (my - panY) / scale;
-                
-                if (selectedSticker.type === 'text-only') {
-                    stickers.push({ type: 'text-only', text: selectedSticker.text, realX: rx, realY: ry });
-                    redraw();
-                } else if (selectedSticker.type === 'custom-text') {
-                    const txt = prompt("지도에 표시할 이름을 직접 입력하세요:");
-                    if (txt && txt.trim() !== '') {
-                        stickers.push({ type: 'text-only', text: txt.trim(), realX: rx, realY: ry });
-                        redraw();
-                    }
-                } else {
-                    stickers.push({ type: 'icon', e: selectedSticker.e, t: selectedSticker.t, realX: rx, realY: ry });
+            if (curTool === 'pan') {
+                isDraggingMap = true; startX = mx - panX; startY = my - panY; return;
+            } 
+            
+            // 스티커 찍기 로직 (개별 사이즈 저장)
+            if (curTool === 'icon' && curIcon) {
+                stickers.push({ type: 'icon', e: curIcon.e, t: curIcon.t, realX: rx, realY: ry, scale: currentGlobalScale });
+                saveHistory(); redraw(); return;
+            } else if (curTool === 'text-only' && curIcon) {
+                stickers.push({ type: 'text-only', text: curIcon.text, realX: rx, realY: ry, scale: currentGlobalScale });
+                saveHistory(); redraw(); return;
+            } else if (curTool === 'custom-text') {
+                const txt = prompt("지도에 표시할 글씨를 직접 입력하세요:");
+                if (txt && txt.trim() !== '') {
+                    stickers.push({ type: 'text-only', text: txt.trim(), realX: rx, realY: ry, scale: currentGlobalScale });
+                    saveHistory(); redraw();
+                }
+                return;
+            }
+
+            // 펜 그리기 로직
+            if (curTool === 'arrow-curve') {
+                if (curveState === 0) {
+                    isDrawing = true; curvePts = { p0: p, p1: null, p2: p };
+                    activeLine = { type: curTool, color: curColor, pts: [p, p] };
+                } else if (curveState === 1) {
+                    drawCtx.drawImage(tempCanvas, 0, 0); tempCtx.clearRect(0,0,tempCanvas.width, tempCanvas.height);
+                    resetCurveState(); saveHistory(); redraw();
+                }
+            } else if (['arrow-straight', 'free', 'eraser'].includes(curTool)) {
+                isDrawing = true; activeLine = { type: curTool, color: curColor, pts: [p] };
+                if(curTool === 'eraser') {
+                    const w = parseFloat(document.getElementById('line-width-slider').value);
+                    drawCtx.globalCompositeOperation = 'destination-out';
+                    drawSmoothLine(drawCtx, [p, p], 'eraser', null, w);
+                    drawCtx.globalCompositeOperation = 'source-over';
                     redraw();
                 }
             }
@@ -432,42 +661,94 @@
         const pointerMove = (e) => {
             const mx = (e.clientX || e.touches[0].clientX) - cvs.getBoundingClientRect().left;
             const my = (e.clientY || e.touches[0].clientY) - cvs.getBoundingClientRect().top;
-            const ss = parseFloat(document.getElementById('sticker-size-slider').value) || 1;
+            const rx = (mx - panX) / scale; const ry = (my - panY) / scale;
+            const p = {x: rx, y: ry};
 
             if (draggingSticker) {
                 e.preventDefault(); stickerMoved = true;
-                draggingSticker.realX = (mx - panX) / scale; draggingSticker.realY = (my - panY) / scale;
+                draggingSticker.realX = rx; draggingSticker.realY = ry;
                 redraw(); return;
             }
 
+            // 호버 판정 (개별 스케일 반영)
             let found = -1;
             for (let i = stickers.length - 1; i >= 0; i--) {
                 const sx = stickers[i].realX * scale + panX; const sy = stickers[i].realY * scale + panY;
-                if (Math.hypot(mx - sx, my - sy) < (30 * ss)) { found = i; break; }
+                const sScale = stickers[i].scale || 1;
+                if (Math.hypot(mx - sx, my - sy) < (35 * sScale * scale)) { found = i; break; }
             }
             if (hoverIdx !== found) { hoverIdx = found; redraw(); }
 
-            if (isDraggingMap && currentMode === 'pan') {
-                e.preventDefault(); panX = mx - startX; panY = my - startY; redraw();
+            if (isDraggingMap && curTool === 'pan') {
+                e.preventDefault(); panX = mx - startX; panY = my - startY; redraw(); return;
+            }
+
+            // 곡선 화살표 구부리기
+            if (curTool === 'arrow-curve' && curveState === 1) {
+                curvePts.p1 = p; tempCtx.clearRect(0,0,tempCanvas.width, tempCanvas.height);
+                const w = parseFloat(document.getElementById('line-width-slider').value);
+                drawSmoothLine(tempCtx, [curvePts.p0, curvePts.p2], 'arrow-curve', curColor, w);
+                redraw(); return;
+            }
+
+            // 펜 그리기
+            if (isDrawing && activeLine) {
+                if(curTool === 'arrow-straight') {
+                    activeLine.pts = [activeLine.pts[0], p];
+                } else if (curTool === 'arrow-curve') {
+                    activeLine.pts = [activeLine.pts[0], p]; curvePts.p2 = p; 
+                } else {
+                    activeLine.pts.push(p);
+                }
+
+                const w = parseFloat(document.getElementById('line-width-slider').value);
+                if(curTool === 'eraser') {
+                    drawSmoothLine(drawCtx, activeLine.pts.slice(-2), 'eraser', null, w);
+                } else {
+                    tempCtx.clearRect(0,0,tempCanvas.width, tempCanvas.height);
+                    drawSmoothLine(tempCtx, activeLine.pts, curTool, curColor, w);
+                }
+                redraw(); 
             }
         };
 
         const pointerUp = () => { 
-            if (draggingSticker && !stickerMoved) {
-                const s = draggingSticker;
-                const currentName = s.type === 'text-only' ? s.text : s.t;
-                const newName = prompt("이 장소의 이름을 변경하세요:", currentName);
-                if (newName !== null && newName.trim() !== "") {
-                    if (s.type === 'text-only') s.text = newName.trim(); else s.t = newName.trim();
-                    redraw();
+            if (isDraggingMap) { isDraggingMap = false; }
+            
+            if (isDrawing && activeLine) {
+                isDrawing = false;
+                if (curTool === 'arrow-curve') {
+                    if (Math.hypot(curvePts.p2.x - curvePts.p0.x, curvePts.p2.y - curvePts.p0.y) < 10) {
+                        resetCurveState();
+                    } else {
+                        curveState = 1; document.getElementById('curve-hint').style.display = 'block';
+                    }
+                } else if (curTool !== 'eraser') {
+                    drawCtx.drawImage(tempCanvas, 0, 0); tempCtx.clearRect(0,0,tempCanvas.width, tempCanvas.height);
+                    saveHistory();
+                } else {
+                    saveHistory();
                 }
+                activeLine = null; redraw();
             }
-            isDraggingMap = false; draggingSticker = null;
+
+            if (draggingSticker) {
+                if (!stickerMoved) {
+                    const s = draggingSticker;
+                    const currentName = s.type === 'text-only' ? s.text : s.t;
+                    const newName = prompt("내용을 변경하세요:", currentName);
+                    if (newName !== null && newName.trim() !== "") {
+                        if (s.type === 'text-only') s.text = newName.trim(); else s.t = newName.trim();
+                    }
+                }
+                saveHistory();
+                draggingSticker = null; redraw();
+            }
         };
 
         cvs.addEventListener('mousedown', pointerDown); window.addEventListener('mousemove', pointerMove); window.addEventListener('mouseup', pointerUp);
-        cvs.addEventListener('touchstart', e => { if(currentMode==='pan' || hoverIdx !== -1) e.preventDefault(); pointerDown(e); }, {passive: false});
-        cvs.addEventListener('touchmove', e => { if(isDraggingMap || draggingSticker) e.preventDefault(); pointerMove(e); }, {passive: false});
+        cvs.addEventListener('touchstart', e => { if(curTool==='pan' || hoverIdx !== -1) e.preventDefault(); pointerDown(e); }, {passive: false});
+        cvs.addEventListener('touchmove', e => { if(isDraggingMap || draggingSticker || isDrawing) e.preventDefault(); pointerMove(e); }, {passive: false});
         window.addEventListener('touchend', pointerUp);
 
         function redraw() {
@@ -482,6 +763,7 @@
             const config = mapConfigs[document.getElementById('map-region').value];
             const renderQueue = ['base', ...config.layers.map(l=>l.id)];
             
+            // 주제도 배경 그리기
             renderQueue.forEach(key => {
                 if (loadedLayers[key] && loadedLayers[key].naturalWidth) {
                     const chk = document.getElementById(`chk-${key}`);
@@ -491,32 +773,40 @@
                     }
                 }
             });
-            ctx.restore();
+            
+            // 유저 펜 그리기 레이어 추가
+            ctx.globalAlpha = 1.0;
+            ctx.drawImage(drawCanvas, 0, 0, w, h);
+            ctx.drawImage(tempCanvas, 0, 0, w, h);
 
-            const ss = parseFloat(document.getElementById('sticker-size-slider').value) || 1;
-
+            // 개별 스케일이 적용된 스티커 그리기
             stickers.forEach((s, i) => {
-                const sx = s.realX * scale + panX; const sy = s.realY * scale + panY;
+                const sx = s.realX; const sy = s.realY; 
+                const sScale = s.scale || 1; // 💡 개별 스티커 크기 반영
+
                 ctx.textAlign = "center"; ctx.textBaseline = "middle";
                 
                 if (s.type === 'text-only') {
-                    ctx.font = `bold ${22 * ss}px 'Jua'`; ctx.fillStyle = "#154360";
-                    ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 5 * ss;
+                    ctx.font = `bold ${30 * sScale}px 'Jua'`; ctx.fillStyle = "#154360";
+                    ctx.strokeStyle = "rgba(255,255,255,0.95)"; ctx.lineWidth = 6 * sScale;
                     ctx.strokeText(s.text, sx, sy); ctx.fillText(s.text, sx, sy);
                 } else {
-                    ctx.font = `${34 * ss}px sans-serif`; ctx.fillText(s.e, sx, sy);
+                    ctx.font = `${45 * sScale}px sans-serif`; ctx.fillText(s.e, sx, sy);
+                    // 스티커 이름 상시 표시 (map6 스타일 적용)
                     if (showText && s.t) {
-                        ctx.font = `bold ${15 * ss}px 'Jua'`; ctx.fillStyle = "#2C3E50";
-                        ctx.strokeStyle = "white"; ctx.lineWidth = 4 * ss;
-                        ctx.strokeText(s.t, sx, sy + (25 * ss)); ctx.fillText(s.t, sx, sy + (25 * ss));
+                        ctx.font = `bold ${18 * sScale}px 'Jua'`; ctx.fillStyle = "#2C3E50";
+                        ctx.strokeStyle = "white"; ctx.lineWidth = 5 * sScale;
+                        ctx.strokeText(s.t, sx, sy + (35 * sScale)); ctx.fillText(s.t, sx, sy + (35 * sScale));
                     }
                 }
 
+                // 삭제 (X) 마크
                 if (hoverIdx === i || draggingSticker === s) {
-                    ctx.fillStyle = "#E74C3C"; ctx.beginPath(); ctx.arc(sx+(18*ss), sy-(18*ss), 14*ss, 0, Math.PI*2); ctx.fill();
-                    ctx.fillStyle = "white"; ctx.font = `bold ${14*ss}px sans-serif`; ctx.fillText("X", sx+(18*ss), sy-(17*ss));
+                    ctx.fillStyle = "#E74C3C"; ctx.beginPath(); ctx.arc(sx+(22*sScale), sy-(22*sScale), 16*sScale, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "white"; ctx.font = `bold ${16*sScale}px sans-serif`; ctx.fillText("X", sx+(22*sScale), sy-(21*sScale));
                 }
             });
+            ctx.restore();
 
             if (stickers.length > 0 && showText) drawLegend();
         }
