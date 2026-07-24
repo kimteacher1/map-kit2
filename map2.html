@@ -645,6 +645,7 @@
                     isDrawing = true; curvePts = { p0: p, p1: null, p2: p };
                     activeLine = { type: curTool, color: curColor, pts: [p, p] };
                 } else if (curveState === 1) {
+                    drawCtx.globalCompositeOperation = 'source-over'; // 💡 지우개 버그 복구 핵심 코드 추가 1
                     drawCtx.drawImage(tempCanvas, 0, 0); tempCtx.clearRect(0,0,tempCanvas.width, tempCanvas.height);
                     resetCurveState(); saveHistory(); redraw();
                 }
@@ -726,6 +727,7 @@
                         curveState = 1; document.getElementById('curve-hint').style.display = 'block';
                     }
                 } else if (curTool !== 'eraser') {
+                    drawCtx.globalCompositeOperation = 'source-over'; // 💡 지우개 버그 복구 핵심 코드 추가 2
                     drawCtx.drawImage(tempCanvas, 0, 0); tempCtx.clearRect(0,0,tempCanvas.width, tempCanvas.height);
                     saveHistory();
                 } else {
@@ -829,7 +831,7 @@
         }
 
         function handleAction(type) {
-            // 💡 수정된 부분: 캡처 시 화면의 배율(scale)과 위치(panX, panY)를 강제로 1과 0으로 바꾸던 코드를 삭제했습니다.
+            // 💡 캡처 시 화면의 배율(scale)과 위치(panX, panY)를 강제로 초기화하지 않도록 조치 완료!
             // 선택된 스티커 표시(빨간색 X 표시 등)만 화면에서 안 보이게 임시로 해제합니다.
             const tempHoverIdx = hoverIdx; 
             const tempDragging = draggingSticker;
