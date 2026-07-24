@@ -178,14 +178,16 @@
             <div class="tool-section" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
                 <h3>🏠 스티커 붙이기 🏠</h3>
                 <div class="slider-container" style="padding: 6px 15px; margin-bottom: 8px;">
-                    <label for="sticker-size-slider">📐 스티커 크기</label>
-                    <input type="range" id="sticker-size-slider" min="0.5" max="2" step="0.1" value="1" oninput="redraw()">
+                    <label for="sticker-size-slider">📐 개별 스티커 크기</label>
+                    <!-- 💡 수정된 부분: 슬라이더 실시간 크기 조절 연동 -->
+                    <input type="range" id="sticker-size-slider" min="0.5" max="3" step="0.1" value="1" oninput="updateStickerSize(this.value)">
                 </div>
+                
+                <!-- 💡 수정된 부분: 주요시설 탭 삭제 및 자연/인문 환경으로만 구성 -->
                 <div class="category-tab-menu">
                     <button class="cat-tab-btn active" id="tab-cat-all" onclick="setCategoryFilter('all')">전체</button>
                     <button class="cat-tab-btn" id="tab-cat-nature" onclick="setCategoryFilter('nature')">자연환경</button>
                     <button class="cat-tab-btn" id="tab-cat-human" onclick="setCategoryFilter('human')">인문환경</button>
-                    <button class="cat-tab-btn" id="tab-cat-facility" onclick="setCategoryFilter('facility')">주요시설</button>
                 </div>
                 <div class="sticker-list" id="sticker-container"></div>
             </div>
@@ -217,24 +219,25 @@
             "제주특별자치도": ["제주시", "서귀포시"]
         };
 
+        // 💡 수정된 부분: 시설물들을 모두 "human" 카테고리로 통합하고, 요청하신 아이콘(📜유산, 🍞빵집, 🎒학원 등)을 변경/추가했습니다.
         const iconPack = [
             // 자연환경
             { e: "⛰️", t: "산", c: "nature" }, { e: "🌊", t: "강", c: "nature" }, { e: "🏞️", t: "하천", c: "nature" }, { e: "💧", t: "호수", c: "nature" },
             { e: "🏖️", t: "바다", c: "nature" }, { e: "🏝️", t: "섬", c: "nature" }, { e: "🌾", t: "평야", c: "nature" }, { e: "🗺️", t: "반도", c: "nature" },
             { e: "🏕️", t: "계곡", c: "nature" }, { e: "🦀", t: "갯벌", c: "nature" }, { e: "🌲", t: "숲", c: "nature" }, { e: "💦", t: "폭포", c: "nature" }, { e: "🌿", t: "습지", c: "nature" },
-            // 인문환경
+            
+            // 인문환경 (주요시설 포함, 신규 아이콘 추가)
             { e: "🏠", t: "우리집", c: "human" }, { e: "🏘️", t: "아파트", c: "human" }, { e: "🌾", t: "논", c: "human" }, { e: "🌽", t: "밭", c: "human" },
             { e: "🍎", t: "과수원", c: "human" }, { e: "🏭", t: "공단", c: "human" }, { e: "🐄", t: "목장", c: "human" }, { e: "🐟", t: "양식장", c: "human" },
-            { e: "🚜", t: "농장", c: "human" }, { e: "⛱️", t: "해수욕장", c: "human" }, { e: "🏯", t: "국가유산", c: "human" }, { e: "🏪", t: "상가", c: "human" },
+            { e: "🚜", t: "농장", c: "human" }, { e: "⛱️", t: "해수욕장", c: "human" }, { e: "📜", t: "국가유산", c: "human" }, { e: "🏪", t: "상가", c: "human" },
             { e: "🛣️", t: "교차로", c: "human" }, { e: "🌉", t: "다리", c: "human" }, { e: "🚇", t: "전철역", c: "human" }, { e: "🚉", t: "기차역", c: "human" }, { e: "🚅", t: "고속철도역", c: "human" },
-            // 주요시설
-            { e: "🏫", t: "학교", c: "facility" }, { e: "🚓", t: "경찰서", c: "facility" }, { e: "🚒", t: "소방서", c: "facility" }, { e: "📮", t: "우체국", c: "facility" },
-            { e: "📖", t: "도서관", c: "facility" }, { e: "🏥", t: "병원", c: "facility" }, { e: "🏬", t: "마트", c: "facility" }, { e: "🏦", t: "은행", c: "facility" },
-            { e: "✚", t: "보건소", c: "facility" }, { e: "📛", t: "유치원", c: "facility" }, { e: "🎓", t: "대학교", c: "facility" }, { e: "🏛️", t: "박물관", c: "facility" },
-            { e: "🖼️", t: "미술관", c: "facility" }, { e: "🍿", t: "영화관", c: "facility" }, { e: "🏟️", t: "체육관", c: "facility" }, { e: "🎭", t: "공연장", c: "facility" },
-            { e: "🚏", t: "버스정류장", c: "facility" }, { e: "🅿️", t: "주차장", c: "facility" }, { e: "⚡", t: "발전소", c: "facility" }, { e: "♻️", t: "쓰레기처리장", c: "facility" },
-            { e: "🚰", t: "정수장", c: "facility" }, { e: "🏪", t: "편의점", c: "facility" }, { e: "☕", t: "카페", c: "facility" }, { e: "🍽️", t: "음식점", c: "facility" },
-            { e: "⛽", t: "주유소", c: "facility" }, { e: "🏛️", t: "시/도청", c: "facility" }, { e: "🏢", t: "시/군/구청", c: "facility" }
+            { e: "🏫", t: "학교", c: "human" }, { e: "🎒", t: "학원", c: "human" }, { e: "🚓", t: "경찰서", c: "human" }, { e: "🚒", t: "소방서", c: "human" }, { e: "📮", t: "우체국", c: "human" },
+            { e: "📖", t: "도서관", c: "human" }, { e: "🏥", t: "병원", c: "human" }, { e: "🏬", t: "마트", c: "human" }, { e: "🏦", t: "은행", c: "human" },
+            { e: "✚", t: "보건소", c: "human" }, { e: "📛", t: "유치원", c: "human" }, { e: "🎓", t: "대학교", c: "human" }, { e: "🏛️", t: "박물관", c: "human" },
+            { e: "🖼️", t: "미술관", c: "human" }, { e: "🍿", t: "영화관", c: "human" }, { e: "🏟️", t: "체육관", c: "human" }, { e: "🎭", t: "공연장", c: "human" },
+            { e: "🚏", t: "버스정류장", c: "human" }, { e: "🅿️", t: "주차장", c: "human" }, { e: "⚡", t: "발전소", c: "human" }, { e: "♻️", t: "쓰레기처리장", c: "human" },
+            { e: "🚰", t: "정수장", c: "human" }, { e: "🏪", t: "편의점", c: "human" }, { e: "🍞", t: "빵집", c: "human" }, { e: "☕", t: "카페", c: "human" }, { e: "🍽️", t: "음식점", c: "human" },
+            { e: "⛽", t: "주유소", c: "human" }, { e: "🏛️", t: "시/도청", c: "human" }, { e: "🏢", t: "시/군/구청", c: "human" }
         ];
 
         const GITHUB_BASE_URL = "https://kimteacher1.github.io/korea-map-sigungu/";
@@ -295,6 +298,14 @@
             renderIcons(); // 최초 로딩 시 스티커 표시 보장
             checkCustomMap();
         };
+
+        // 💡 추가된 부분: 스티커 크기 개별 조절 함수
+        function updateStickerSize(val) {
+            if (draggingStickerIdx !== -1) {
+                stickers[draggingStickerIdx].scale = parseFloat(val);
+                redraw();
+            }
+        }
 
         function initDropdowns() {
             for (let s in regionData) selSido.add(new Option(s, s));
@@ -734,14 +745,15 @@
                 return;
             }
 
-            // 스티커 Hover 감지
+            // 스티커 Hover 감지 (개별 스케일 반영)
             let found = -1;
-            const ss = parseFloat(stickerSlider.value) || 1;
             for (let i = stickers.length - 1; i >= 0; i--) {
                 const ap = absPt({x: stickers[i].realX, y: stickers[i].realY});
                 const screenX = ap.x * scale + panX;
                 const screenY = ap.y * scale + panY;
-                if (Math.hypot(mx - screenX, my - screenY) < (35 * ss)) { found = i; break; }
+                const sScale = stickers[i].scale || 1; 
+                
+                if (Math.hypot(mx - screenX, my - screenY) < (35 * sScale * scale)) { found = i; break; }
             }
             if (hoverIdx !== found) { hoverIdx = found; redraw(); }
             
@@ -774,24 +786,31 @@
                 startX = e.clientX - panX; startY = e.clientY - panY; return;
             }
 
-            const ss = parseFloat(stickerSlider.value) || 1;
+            const currentGlobalScale = parseFloat(stickerSlider.value) || 1;
+
+            // 스티커 선택 및 삭제 판정 (개별 스케일 반영)
             for (let i = stickers.length - 1; i >= 0; i--) {
                 const ap = absPt({x: stickers[i].realX, y: stickers[i].realY});
                 const screenX = ap.x * scale + panX;
                 const screenY = ap.y * scale + panY;
+                const sScale = stickers[i].scale || 1; 
                 
-                if (hoverIdx === i && Math.hypot(clkX - (screenX+(18*ss)), clkY - (screenY-(18*ss))) < (30*ss)) {
+                if (hoverIdx === i && Math.hypot(clkX - (screenX+(18*sScale*scale)), clkY - (screenY-(18*sScale*scale))) < (25*sScale*scale)) {
                     stickers.splice(i, 1); hoverIdx = -1; saveHistory(); redraw(); return; 
                 }
-                if (Math.hypot(clkX - screenX, clkY - screenY) < (25*ss)) {
-                    draggingStickerIdx = i; stickerMoved = false; return; 
+                if (Math.hypot(clkX - screenX, clkY - screenY) < (25*sScale*scale)) {
+                    draggingStickerIdx = i; stickerMoved = false; 
+                    stickerSlider.value = sScale; // 💡 선택한 스티커 크기로 슬라이더 동기화
+                    return; 
                 }
             }
             
             const p = getPt(e); if (!p) return;
             
             if (curTool === 'icon' && curIcon) {
-                stickers.push({ e: curIcon.e, t: curIcon.t, realX: p.x, realY: p.y }); saveHistory(); redraw();
+                // 💡 새 스티커를 찍을 때 현재 슬라이더의 크기 값을 함께 저장
+                stickers.push({ e: curIcon.e, t: curIcon.t, realX: p.x, realY: p.y, scale: currentGlobalScale }); 
+                saveHistory(); redraw();
             } else if (['road','rail','river','highlighter','eraser'].includes(curTool)) {
                 if (drawMode === 'free') { 
                     isDrawing = true; strokePoints = [p]; saveHistory();
@@ -895,14 +914,16 @@
                 ctx.fillStyle = "#E74C3C"; ctx.fill();
             }
 
-            // 스티커 합성 (크기 조절 포함)
-            const ss = parseFloat(stickerSlider.value) || 1;
+            // 스티커 합성 (개별 크기 조절 반영)
             stickers.forEach((s, i) => {
                 const p = absPt({x: s.realX, y: s.realY});
+                const ss = s.scale || 1; // 💡 개별 스티커 크기 반영
+                
                 ctx.font = `${30 * ss}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                 ctx.fillText(s.e, p.x, p.y);
                 
-                if (showText) {
+                // 💡 수정된 부분: 범례 표시(showText) 여부와 상관없이 글씨는 무조건 표시됩니다.
+                if (s.t) {
                     ctx.font = `bold ${15 * ss}px 'Jua'`; ctx.fillStyle = "#2c3e50"; 
                     ctx.strokeStyle = "white"; ctx.lineWidth = 4 * ss;
                     ctx.strokeText(s.t, p.x, p.y + (24 * ss)); ctx.fillText(s.t, p.x, p.y + (24 * ss));
