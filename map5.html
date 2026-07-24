@@ -3,509 +3,966 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAP LAB - 스마트 배움공책</title>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <title>&lt;MAP KIT&gt; 백지도 그리기</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
         
         :root {
             --primary: #5DADE2;   
-            --bg: #F4F6F7;        
+            --primary-hover: #3498DB;
+            --bg: #FFF5F5;        
             --panel: #FFFFFF;
+            --text: #4A4A4A;      
             --border: #E8E8E8;
+            --radius-btn: 20px;   
             --radius-box: 24px;   
         }
 
-        * { box-sizing: border-box; }
-        body { font-family: 'Jua', sans-serif; margin: 0; background: var(--bg); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; user-select: none; }
+        
+        body { font-family: 'Jua', sans-serif; margin: 0; padding: 0; background: var(--bg); display: flex; flex-direction: column; height: 100vh; overflow: hidden; color: var(--text); }
 
-        .hidden { display: none !important; }
-        
-        .nb-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); z-index: 10;}
-        .btn-outline { background: white; border: 2px solid var(--border); border-radius: 12px; padding: 8px 15px; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; font-size: 1rem;}
-        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-primary { background: var(--primary); color: white; border: none; border-radius: 12px; padding: 10px 20px; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; font-size: 1.1rem;}
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(93, 173, 226, 0.4); }
+        header { background: var(--panel); padding: 15px 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); display: flex; justify-content: space-between; align-items: center; z-index: 10; border-bottom-left-radius: var(--radius-box); border-bottom-right-radius: var(--radius-box); margin: 0 15px; gap: 15px; white-space: nowrap; }
+        .menu-group { display: flex; gap: 10px; flex: 1; align-items: center; white-space: nowrap; flex-wrap: nowrap; }
+        select { height: 45px; padding: 0 15px; border-radius: var(--radius-btn); border: 2px solid var(--border); font-size: 1.1rem; font-family: 'Jua', sans-serif; color: var(--text); outline: none; cursor: pointer; flex: 1; max-width: 200px; min-width: 120px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; background: #FDFDFD; transition: 0.2s; }
+        select:hover { border-color: var(--primary); }
 
-        .nb-topic { flex: 1; margin: 0 20px; }
-        .nb-topic input { width: 100%; padding: 10px; font-size: 1.3rem; border: none; border-bottom: 2px dashed var(--primary); outline: none; font-family: 'Jua', sans-serif; background: transparent; color: #2C3E50; text-align: center;}
-        
-        .nb-toolbar { display: flex; gap: 10px; background: white; padding: 10px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); align-items: center; justify-content: flex-start; z-index: 5; flex-wrap:wrap;}
-        .tool-group { display: flex; align-items: center; gap: 8px; border-right: 2px solid var(--border); padding-right: 15px; }
-        .tool-group:last-child { border: none; padding-right: 0;}
-        .tool-btn { background: #F0F3F4; border: none; padding: 10px 15px; border-radius: 12px; cursor: pointer; font-family: 'Jua', sans-serif; transition: 0.2s; font-size: 1.05rem; color: #4A4A4A;}
-        .tool-btn.active { background: #D1F2EB; color: #117A65; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
-        .action-btn { padding: 8px 12px; border: 1px solid #D5D8DC; background: #FDFDFD; }
-        .action-btn:hover { background: #F4F6F7; }
-        
-        .btn-import { background: #FEF9E7; border: 1px solid #F1C40F; color: #D4AC0D; font-weight: bold; }
-        .btn-import:hover { background: #FCF3CF; }
+        .custom-mode-badge { display: none; background: #EBF5FB; color: var(--primary-hover); padding: 10px 20px; border-radius: var(--radius-btn); border: 2px dashed var(--primary); font-weight: bold; font-size: 1.1rem; }
 
-        .nb-workspace { flex: 1; padding: 20px; display: flex; justify-content: center; overflow: hidden;}
-        
-        #notebook-canvas-container { position: relative; width: 100%; max-width: 900px; height: 100%; background: #FAFAFA; background-image: radial-gradient(#D5D8DC 1px, transparent 1px); background-size: 25px 25px; border-radius: var(--radius-box); box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden;}
-        
-        #draw-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-        #draw-layer.active { pointer-events: auto; cursor: none; /* 커서 인디케이터를 사용하므로 기본 커서 숨김 */ }
-        
+        .btn-help { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #FEF9E7; color: #D35400; border: 2px solid transparent; transition: 0.3s; font-family: 'Jua', sans-serif; white-space: nowrap; flex-shrink: 0; font-weight: bold; }
+        .btn-help:hover { background: #FDEBD0; }
+
+        .btn-back { padding: 10px 18px; font-size: 1.1rem; cursor: pointer; border-radius: var(--radius-btn); background: #E74C3C; color: white; border: 2px solid transparent; transition: 0.3s; font-family: 'Jua', sans-serif; white-space: nowrap; flex-shrink: 0; font-weight: bold; }
+        .btn-back:hover { background: #C0392B; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3); }
+
+        .toggle-container { display: flex; background: #F0F3F4; border-radius: 30px; overflow: hidden; padding: 4px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); flex-shrink: 0;}
+        .toggle-btn { padding: 10px 18px; font-size: 1.05rem; cursor: pointer; color: #95A5A6; transition: 0.3s; border-radius: 26px; white-space: nowrap; }
+        .toggle-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(93, 173, 226, 0.4); }
+
+        main { flex: 1; display: flex; overflow: hidden; padding: 15px; gap: 15px; }
+
         /* 커서 인디케이터 */
         #cursor-indicator { position: fixed; border-radius: 50%; pointer-events: none; display: none; z-index: 9999; transform: translate(-50%, -50%); box-shadow: 0 0 3px rgba(0,0,0,0.4); border: 1.5px solid #000; }
 
-        .layout-container { width: 100%; height: 100%; padding: 25px; z-index: 2; position: relative; gap: 20px; }
+        #map-stage { flex: 3; position: relative; background: white; border-radius: var(--radius-box); box-shadow: 0 8px 24px rgba(0,0,0,0.06); overflow: hidden; cursor: none; }
+        canvas { display: block; width: 100%; height: 100%; touch-action: none; }
         
-        .text-box { width: 100%; height: 100%; border: none; background: transparent; resize: none; font-family: sans-serif; font-size: 1.1rem; line-height: 1.6; outline: none; padding: 15px; border: 2px dashed #BDC3C7; border-radius: 16px; color: #34495E; transition: 0.2s;}
-        .text-box:focus { background: rgba(255,255,255,0.9); border-color: var(--primary); }
+        #loading-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; color: var(--primary); display: none; pointer-events: none; background: rgba(255,255,255,0.9); padding: 15px 30px; border-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 100; }
+        
+        #toast-msg { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 1.1rem; color: white; display: none; pointer-events: none; background: rgba(44, 62, 80, 0.85); padding: 10px 25px; border-radius: 20px; z-index: 100; transition: 0.3s; }
 
-        .layout-1 { display: flex; flex-direction: column; }
-        .layout-1 .top-area { flex: 1; border: 2px dashed #BDC3C7; border-radius: 16px; background: rgba(255,255,255,0.6); display: flex; justify-content: center; align-items: center; color: #95A5A6; font-size: 1.2rem;}
-        .layout-1 .bottom-area { flex: 1; }
-        
-        .layout-2 { display: flex; flex-direction: row; }
-        .layout-2 .left-area { flex: 1; }
-        .layout-2 .right-area { flex: 1; border: 2px dashed #BDC3C7; border-radius: 16px; background: rgba(255,255,255,0.6); display: flex; justify-content: center; align-items: center; color: #95A5A6; text-align:center;}
-        
-        .layout-3 { display: grid; grid-template-columns: 30% 1fr; grid-template-rows: 1fr 150px; }
-        .layout-3 .left-cue { grid-column: 1; grid-row: 1; border-right: 2px dashed var(--border); padding-right: 15px; }
-        .layout-3 .right-note { grid-column: 2; grid-row: 1; padding-left: 15px;}
-        .layout-3 .bottom-summary { grid-column: 1 / span 2; grid-row: 2; border-top: 2px dashed var(--border); padding-top: 15px; }
+        .zoom-controls { position: absolute; bottom: 20px; right: 20px; z-index: 50; display: flex; flex-direction: column; gap: 8px; }
+        .zoom-btn { background: white; border: 2px solid var(--border); border-radius: 12px; padding: 10px 0; font-size: 1.1rem; color: var(--text); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.08); transition: 0.2s; font-family: 'Jua', sans-serif; width: 85px; text-align: center; font-weight: bold; }
+        .zoom-btn:hover { border-color: var(--primary); color: var(--primary); transform: scale(1.05); }
 
-        /* 레이아웃 선택 모달 */
-        #layout-modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); z-index: 1000; display: flex; justify-content: center; align-items: center; }
-        .modal-box { background: white; padding: 40px; border-radius: var(--radius-box); max-width: 700px; text-align: center; }
-        .modal-box h2 { color: var(--primary); margin-top: 0; font-size: 1.8rem;}
-        .layout-options { display: flex; gap: 20px; margin-top: 30px; }
-        .layout-card { border: 2px solid var(--border); border-radius: 16px; padding: 20px; cursor: pointer; transition: 0.2s; flex: 1; background: #FDFDFD;}
-        .layout-card:hover { border-color: var(--primary); background: #E8F8F5; transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.05);}
-        .layout-preview { width: 100%; height: 120px; background: #F0F3F4; margin-bottom: 15px; border-radius: 10px; display: flex; gap: 8px; padding: 8px; }
+        aside { flex: 1; max-width: 400px; background: var(--panel); border-radius: var(--radius-box); padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.06); display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
+        .tool-section { display: flex; flex-direction: column; min-height: 0; }
+        .tool-section h3 { margin: 0 0 10px 0; font-size: 1.15rem; color: var(--primary); text-align: center; }
         
-        .p-1 { flex-direction: column; } .p-1 div { flex: 1; background: white; border-radius: 6px; border: 1.5px dashed #BDC3C7;}
-        .p-2 { flex-direction: row; } .p-2 div { flex: 1; background: white; border-radius: 6px; border: 1.5px dashed #BDC3C7;}
-        .p-3 { display: grid; grid-template-columns: 1fr 2.5fr; grid-template-rows: 2fr 1fr; } .p-3 div { background: white; border-radius: 6px; border: 1.5px dashed #BDC3C7; } .p-3 .b { grid-column: 1 / span 2; }
+        .btn-grid { display: grid; gap: 8px; margin-bottom: 8px; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        
+        .tool-btn { padding: 10px 4px; border: 2px solid var(--border); border-radius: 14px; background: white; cursor: pointer; font-size: 1.05rem; font-family: 'Jua', sans-serif; color: var(--text); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .tool-btn.selected { border-color: var(--primary); background: #EBF5FB; color: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(93, 173, 226, 0.2);}
+        .action-btn { background: #F4F6F7; border-color: #D5D8DC; border-radius: 14px;}
+
+        .slider-container { display: flex; align-items: center; gap: 10px; background: #F8F9F9; padding: 10px 15px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 5px;}
+        .slider-container label { font-size: 1rem; color: var(--primary); white-space: nowrap; font-weight:bold;}
+        .slider-container input[type="range"] { flex: 1; accent-color: var(--primary); cursor: pointer; }
+
+        .category-tab-menu { display: flex; gap: 4px; margin-bottom: 8px; flex-shrink: 0; }
+        .cat-tab-btn { flex: 1; padding: 8px 2px; font-size: 0.95rem; border: none; background: #F0F3F4; color: #7F8C8D; border-radius: 10px; cursor: pointer; font-family: 'Jua', sans-serif; }
+        .cat-tab-btn.active { background: #EBF5FB; color: var(--primary-hover); font-weight: bold; border: 1px solid var(--primary); }
+
+        .sticker-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; overflow-y: auto; align-content: start; flex: 1; padding-right: 4px; min-height: 0; }
+        .sticker-list::-webkit-scrollbar { width: 6px; }
+        .sticker-list::-webkit-scrollbar-thumb { background: #D5D8DC; border-radius: 10px; }
+
+        .sticker-item { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 55px; border: 2px solid transparent; border-radius: 12px; cursor: pointer; transition: 0.2s; font-size: 0.75rem; background: #FDFDFD; box-shadow: 0 2px 5px rgba(0,0,0,0.02); word-break: keep-all; letter-spacing: -0.5px; text-align:center; padding: 2px;}
+        .sticker-item:hover, .sticker-item.selected { background: #EBF5FB; border-color: var(--primary); transform: scale(1.05); }
+        .sticker-emoji { font-size: 1.4rem; margin-bottom: 2px; }
+
+        footer { padding: 0 15px 15px 15px; display: flex; justify-content: flex-end; z-index: 10; gap: 10px;}
+        .btn-action { color: white; border: none; padding: 12px 25px; border-radius: var(--radius-btn); font-size: 1.2rem; font-family: 'Jua', sans-serif; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        #download-btn { background: #95A5A6; }
+        #download-btn:hover { background: #7F8C8D; transform: translateY(-3px); }
+        #submit-btn { background: #FF9A9E; box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4); }
+        #submit-btn:hover { background: #FF858A; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6); }
+
+        #help-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 550px; width: 90%; position: relative; font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; }
+        .modal-content h2 { color: var(--primary); margin-top: 0; font-family: 'Jua', sans-serif; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+        .modal-content ul { padding-left: 20px; font-size: 1.05rem; }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; background: none; border: none; color: #E74C3C; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <!-- 커서 표시기 -->
     <div id="cursor-indicator"></div>
 
-    <div id="layout-modal">
-        <div class="modal-box">
-            <h2>어떤 질문 노트 양식을 사용할까요?</h2>
-            <div class="layout-options">
-                <div class="layout-card" onclick="selectLayout(1)">
-                    <div class="layout-preview p-1"><div></div><div></div></div>
-                    <h3>상하 분할형</h3>
-                    <p style="font-size:1rem; color:#7F8C8D;">위에는 그림/지도<br>아래는 글쓰기</p>
-                </div>
-                <div class="layout-card" onclick="selectLayout(2)">
-                    <div class="layout-preview p-2"><div></div><div></div></div>
-                    <h3>좌우 분할형</h3>
-                    <p style="font-size:1rem; color:#7F8C8D;">글과 그림을<br>나란히 나란히</p>
-                </div>
-                <div class="layout-card" onclick="selectLayout(3)">
-                    <div class="layout-preview p-3"><div></div><div></div><div class="b"></div></div>
-                    <h3>코넬 노트형</h3>
-                    <p style="font-size:1rem; color:#7F8C8D;">단어+내용+요약<br>체계적인 필기</p>
-                </div>
-            </div>
+    <div id="help-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="document.getElementById('help-modal').style.display='none'">X</button>
+            <h2>📖 &lt;MAP KIT&gt; 백지도 그리기 가이드</h2>
+            <ul>
+                <li><b>지형과 길 그리기:</b> 도로, 철도, 강 등을 부드럽게 그려보세요. 테두리가 살아있는 실제 도로와 철도 모양으로 그려집니다.</li>
+                <li><b>📏 점 찍어 잇기:</b> 클릭할 때마다 선이 자동으로 이어집니다. 선을 끊고 새로 시작하려면 <b>'마우스 우클릭(길게 누르기)'</b>을 하세요!</li>
+                <li><b>🧽 진짜 지우개:</b> 지우개로 문지르면 배경 지도는 안전하게 보호되고 내가 그린 펜 자국만 말끔히 지워집니다.</li>
+                <li><b>스티커 변환 마법:</b> 관공서(시/도청) 스티커를 고르면 내가 선택한 지역 이름으로 찰떡같이 바뀌어 나옵니다.</li>
+            </ul>
         </div>
     </div>
 
-    <div class="nb-header">
-        <button class="btn-outline" onclick="if(window.parent && window.parent.closeApp) window.parent.closeApp(); else history.back();">◀ 메뉴로</button>
-        <div class="nb-topic">
-            <input type="text" id="nb-topic-input" placeholder="오늘의 배움 주제를 적어주세요.">
-        </div>
-        <div style="width: 80px;"></div>
-    </div>
-    
-    <div class="nb-toolbar">
-        <div class="tool-group">
-            <button class="tool-btn btn-import" onclick="importChatHistory()">💬 대화 불러오기</button>
-            <button class="tool-btn" onclick="openLayoutModal()">📑 양식 변경</button>
+    <header>
+        <div class="menu-group">
+            <select id="sido-select"><option value="">시/도 선택</option></select>
+            <select id="sigungu-select"><option value="">시/군/구 선택</option></select>
+            <div class="custom-mode-badge" id="custom-badge">🎨 나만의 커스텀 백지도 작업 중</div>
+            <button class="btn-help" onclick="document.getElementById('help-modal').style.display='flex'">💡 사용법</button>
+            <button class="btn-back" onclick="if(window.parent && window.parent.closeApp) window.parent.closeApp(); else history.back();">🔙 메뉴로</button>
         </div>
         
-        <!-- 실행 취소 / 복구 추가 -->
-        <div class="tool-group">
-            <button class="tool-btn action-btn" onclick="undo()" id="btn-undo">↩️</button>
-            <button class="tool-btn action-btn" onclick="redo()" id="btn-redo">↪️</button>
+        <div class="toggle-container" style="margin-right: 10px;" id="base-map-toggle-wrapper">
+            <div class="toggle-btn active" id="toggle-map-show" onclick="setBaseMapMode(true)">🗺️ 전도 보이기</div>
+            <div class="toggle-btn" id="toggle-map-hide" onclick="setBaseMapMode(false)">❌ 전도 숨김</div>
         </div>
 
-        <div class="tool-group">
-            <button class="tool-btn active" id="tool-text" onclick="setNotebookMode('text')">⌨️ 글쓰기</button>
+        <div class="toggle-container">
+            <div class="toggle-btn active" id="toggle-show" onclick="setTextMode(true)">✅ 범례 표시</div>
+            <div class="toggle-btn" id="toggle-hide" onclick="setTextMode(false)">❌ 숨김</div>
+        </div>
+    </header>
+
+    <main>
+        <div id="map-stage">
+            <div id="loading-msg">지도를 불러오는 중이에요! 🚀</div>
+            <div id="toast-msg"></div>
+            <canvas id="mapCanvas"></canvas>
             
-            <button class="tool-btn" id="tool-draw" onclick="setNotebookMode('draw')">✏️ 펜</button>
-            <button class="tool-btn" id="tool-highlighter" onclick="setNotebookMode('highlighter')">🖍️ 형광펜</button>
-            
-            <!-- 색상 선택기 위치 변경 및 기능 연동 -->
-            <input type="color" id="draw-color" value="#2C3E50" onchange="updateColorState()" style="cursor:pointer; height:35px; border-radius:8px; border:1px solid #BDC3C7;">
-            
-            <!-- 지우개를 펜, 색상 뒤로 이동 -->
-            <button class="tool-btn" id="tool-erase" onclick="setNotebookMode('erase')">🧽 지우개</button>
-            
-            <!-- 스마트 사이즈 슬라이더 -->
-            <div style="display:flex; flex-direction:column; align-items:center; margin-left:5px;">
-                <span id="size-label" style="font-size:0.8rem; color:#7F8C8D; font-weight:bold;">펜 굵기</span>
-                <input type="range" id="draw-size" min="2" max="50" value="5" style="width: 80px; accent-color:#5DADE2;" oninput="updateSizeState()">
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomView(1.3)">확대</button>
+                <button class="zoom-btn" onclick="resetZoomControl()">화면맞춤</button>
+                <button class="zoom-btn" onclick="zoomView(0.7)">축소</button>
             </div>
         </div>
+        <aside>
+            <div class="btn-grid grid-3">
+                <button class="tool-btn action-btn" onclick="undo()" id="btn-undo">↩️ 취소</button>
+                <button class="tool-btn action-btn" onclick="redo()" id="btn-redo">↪️ 복구</button>
+                <button class="tool-btn" onclick="clearAll()" style="color: #E74C3C; border-color: #FADBD8;">🗑️ 싹지우기</button>
+            </div>
 
-        <div class="tool-group" style="border:none;">
-            <button class="tool-btn" onclick="clearCanvas()" style="color: #E74C3C; font-weight:bold;">🗑️ 전체 지우기</button>
-        </div>
-        
-        <button class="btn-primary" style="margin-left:auto;" onclick="saveNotebook()">📸 완성! 선생님께 제출</button>
-    </div>
+            <div class="tool-section">
+                <h3>✨ 지형과 길 그리기 ✨</h3>
+                <div class="btn-grid grid-3">
+                    <button class="tool-btn selected" id="tool-road" onclick="setTool('road')">🛣️ 도로</button>
+                    <button class="tool-btn" id="tool-rail" onclick="setTool('rail')">🚂 철도</button>
+                    <button class="tool-btn" id="tool-river" onclick="setTool('river')">🌊 하천</button>
+                </div>
+                <div class="btn-grid grid-3">
+                    <button class="tool-btn" id="tool-highlighter" onclick="setTool('highlighter')">🖍️ 형광펜</button>
+                    <button class="tool-btn" id="tool-eraser" onclick="setTool('eraser')">🧽 지우개</button>
+                    <button class="tool-btn" id="tool-pan" onclick="setTool('pan')">🤚 이동</button>
+                </div>
+                <div class="btn-grid grid-2">
+                    <button class="tool-btn selected" id="mode-free" onclick="setDrawMode('free')">✍️ 펜으로 쓱쓱</button>
+                    <button class="tool-btn" id="mode-point" onclick="setDrawMode('point')">📏 점 찍어 잇기</button>
+                </div>
+                <div class="slider-container">
+                    <label for="line-width-slider">✏️ 펜/지우개 굵기</label>
+                    <input type="range" id="line-width-slider" min="0.3" max="3" step="0.1" value="1" oninput="updateCursorPos(lastMouseEvent)">
+                </div>
+            </div>
 
-    <div class="nb-workspace">
-        <div id="notebook-canvas-container">
-            <canvas id="draw-layer"></canvas>
-            <div id="layout-wrapper" class="layout-container layout-1"></div>
-        </div>
-    </div>
+            <div class="tool-section" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <h3>🏠 스티커 붙이기 🏠</h3>
+                <div class="slider-container" style="padding: 6px 15px; margin-bottom: 8px;">
+                    <label for="sticker-size-slider">📐 스티커 크기</label>
+                    <input type="range" id="sticker-size-slider" min="0.5" max="2" step="0.1" value="1" oninput="redraw()">
+                </div>
+                
+                <!-- 💡 수정된 부분: 주요시설 탭 삭제 및 자연/인문 환경으로만 구성 -->
+                <div class="category-tab-menu">
+                    <button class="cat-tab-btn active" id="tab-cat-all" onclick="setCategoryFilter('all')">전체</button>
+                    <button class="cat-tab-btn" id="tab-cat-nature" onclick="setCategoryFilter('nature')">자연환경</button>
+                    <button class="cat-tab-btn" id="tab-cat-human" onclick="setCategoryFilter('human')">인문환경</button>
+                </div>
+                <div class="sticker-list" id="sticker-container"></div>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <button class="btn-action" id="download-btn" onclick="handleAction('download')">📥 다운로드(저장)</button>
+        <button class="btn-action" id="submit-btn" onclick="handleAction('submit')">📸 선생님께 제출하기</button>
+    </footer>
 
     <script>
-        // 도구별 상태(굵기, 색상)를 개별 기억하는 스마트 로직
-        let state = {
-            pen: { size: 5, color: '#2C3E50' },
-            highlighter: { size: 20, color: '#F1C40F' },
-            erase: { size: 30 }
+        const regionData = {
+            "서울특별시": ["종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구", "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구", "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구", "서초구", "강남구", "송파구", "강동구"],
+            "부산광역시": ["중구", "서구", "동구", "영도구", "부산진구", "동래구", "남구", "북구", "해운대구", "사하구", "금정구", "강서구", "연제구", "수영구", "사상구", "기장군"],
+            "대구광역시": ["중구", "동구", "서구", "남구", "북구", "수성구", "달서구", "달성군", "군위군"],
+            "인천광역시": ["영종구", "제물포구", "미추홀구", "연수구", "남동구", "부평구", "계양구", "서해구", "검단구", "강화군", "옹진군"],
+            "전남광주통합특별시": ["동구", "서구", "남구", "북구", "광산구", "목포시", "여수시", "순천시", "나주시", "광양시", "담양군", "곡성군", "구례군", "고흥군", "보성군", "화순군", "장흥군", "강진군", "해남군", "영암군", "무안군", "함평군", "영광군", "장성군", "완도군", "진도군", "신안군"],
+            "대전광역시": ["동구", "중구", "서구", "유성구", "대덕구"],
+            "울산광역시": ["중구", "남구", "동구", "북구", "울주군"],
+            "세종특별자치시": ["-"],
+            "경기도": ["수원시", "성남시", "의정부시", "안양시", "부천시", "광명시", "동두천시", "평택시", "안산시", "고양시", "과천시", "구리시", "남양주시", "오산시", "시흥시", "군포시", "의왕시", "하남시", "용인시", "파주시", "이천시", "안성시", "김포시", "화성시", "광주시", "양주시", "포천시", "여주시", "연천군", "가평군", "양평군"],
+            "강원특별자치도": ["춘천시", "원주시", "강릉시", "동해시", "태백시", "속초시", "삼척시", "홍천군", "횡성군", "영월군", "평창군", "정선군", "철원군", "화천군", "양구군", "인제군", "고성군", "양양군"],
+            "충청북도": ["청주시", "충주시", "제천시", "보은군", "옥천군", "영동군", "증평군", "진천군", "괴산군", "음성군", "단양군"],
+            "충청남도": ["천안시", "공주시", "보령시", "아산시", "서산시", "논산시", "계룡시", "당진시", "금산군", "부여군", "서천군", "청양군", "홍성군", "예산군", "태안군"],
+            "전북특별자치도": ["전주시", "군산시", "익산시", "정읍시", "남원시", "김제시", "완주군", "진안군", "무주군", "장수군", "임실군", "순창군", "고창군", "부안군"],
+            "경상북도": ["포항시", "경주시", "김천시", "안동시", "구미시", "영주시", "영천시", "상주시", "문경시", "경산시", "의성군", "청송군", "영양군", "영덕군", "청도군", "고령군", "성주군", "칠곡군", "예천군", "봉화군", "울진군", "울릉군"],
+            "경상남도": ["창원시", "진주시", "통영시", "사천시", "김해시", "밀양시", "거제시", "양산시", "의령군", "함안군", "창녕군", "고성군", "남해군", "하동군", "산청군", "함양군", "거창군", "합천군"],
+            "제주특별자치도": ["제주시", "서귀포시"]
         };
 
-        let curNbMode = 'text';
-        const cvs = document.getElementById('draw-layer');
-        const ctx = cvs.getContext('2d');
-        const cursorIndicator = document.getElementById('cursor-indicator');
+        // 💡 수정된 부분: 시설물들(학교, 경찰서 등)의 카테고리를 모두 "human"(인문환경)으로 통합했습니다.
+        const iconPack = [
+            // 자연환경
+            { e: "⛰️", t: "산", c: "nature" }, { e: "🌊", t: "강", c: "nature" }, { e: "🏞️", t: "하천", c: "nature" }, { e: "💧", t: "호수", c: "nature" },
+            { e: "🏖️", t: "바다", c: "nature" }, { e: "🏝️", t: "섬", c: "nature" }, { e: "🌾", t: "평야", c: "nature" }, { e: "🗺️", t: "반도", c: "nature" },
+            { e: "🏕️", t: "계곡", c: "nature" }, { e: "🦀", t: "갯벌", c: "nature" }, { e: "🌲", t: "숲", c: "nature" }, { e: "💦", t: "폭포", c: "nature" }, { e: "🌿", t: "습지", c: "nature" },
+            
+            // 인문환경 (주요시설 포함)
+            { e: "🏠", t: "우리집", c: "human" }, { e: "🏘️", t: "아파트", c: "human" }, { e: "🌾", t: "논", c: "human" }, { e: "🌽", t: "밭", c: "human" },
+            { e: "🍎", t: "과수원", c: "human" }, { e: "🏭", t: "공단", c: "human" }, { e: "🐄", t: "목장", c: "human" }, { e: "🐟", t: "양식장", c: "human" },
+            { e: "🚜", t: "농장", c: "human" }, { e: "⛱️", t: "해수욕장", c: "human" }, { e: "🏯", t: "국가유산", c: "human" }, { e: "🏪", t: "상가", c: "human" },
+            { e: "🛣️", t: "교차로", c: "human" }, { e: "🌉", t: "다리", c: "human" }, { e: "🚇", t: "전철역", c: "human" }, { e: "🚉", t: "기차역", c: "human" }, { e: "🚅", t: "고속철도역", c: "human" },
+            { e: "🏫", t: "학교", c: "human" }, { e: "🚓", t: "경찰서", c: "human" }, { e: "🚒", t: "소방서", c: "human" }, { e: "📮", t: "우체국", c: "human" },
+            { e: "📖", t: "도서관", c: "human" }, { e: "🏥", t: "병원", c: "human" }, { e: "🏬", t: "마트", c: "human" }, { e: "🏦", t: "은행", c: "human" },
+            { e: "✚", t: "보건소", c: "human" }, { e: "📛", t: "유치원", c: "human" }, { e: "🎓", t: "대학교", c: "human" }, { e: "🏛️", t: "박물관", c: "human" },
+            { e: "🖼️", t: "미술관", c: "human" }, { e: "🍿", t: "영화관", c: "human" }, { e: "🏟️", t: "체육관", c: "human" }, { e: "🎭", t: "공연장", c: "human" },
+            { e: "🚏", t: "버스정류장", c: "human" }, { e: "🅿️", t: "주차장", c: "human" }, { e: "⚡", t: "발전소", c: "human" }, { e: "♻️", t: "쓰레기처리장", c: "human" },
+            { e: "🚰", t: "정수장", c: "human" }, { e: "🏪", t: "편의점", c: "human" }, { e: "☕", t: "카페", c: "human" }, { e: "🍽️", t: "음식점", c: "human" },
+            { e: "⛽", t: "주유소", c: "human" }, { e: "🏛️", t: "시/도청", c: "human" }, { e: "🏢", t: "시/군/구청", c: "human" }
+        ];
+
+        const GITHUB_BASE_URL = "https://kimteacher1.github.io/korea-map-sigungu/";
+        
+        // 듀얼 캔버스 레이어(Raster) 시스템
+        let drawCanvas = document.createElement('canvas');
+        let drawCtx = drawCanvas.getContext('2d');
+        let tempCanvas = document.createElement('canvas');
+        let tempCtx = tempCanvas.getContext('2d');
+        
+        let stickers = [];
+        let historyStack = [];
+        let stickerHistoryStack = [];
+        let historyStep = -1;
+        
+        let showText = true; 
+        let mapSourceMode = 'preset';
+        let currentCat = 'all';
+        
+        let curTool = 'road'; 
+        let drawMode = 'free'; 
+        let curIcon = null;
+        
+        let nationalImg = null;
+        let isNationalMap = true;
+        let showBaseMap = true;
+
+        let mapImg = null;
+        let baseImgW = 1000, baseImgH = 1000;
+        let imgRect = { x: 0, y: 0, w: 0, h: 0 }; 
         
         let isDrawing = false;
-        let lastX = 0, lastY = 0;
+        let isPanning = false;
+        let strokePoints = [];
+        let lastPoint = null; // 점 찍어 잇기 용
+
+        let hoverIdx = -1; 
+        let draggingStickerIdx = -1;
+        let stickerMoved = false;
+
+        let scale = 1; let panX = 0; let panY = 0;
+        let startX = 0, startY = 0;
         let lastMouseEvent = null;
 
-        // 히스토리 로직
-        let historyStack = [];
-        let historyStep = -1;
+        const cvs = document.getElementById('mapCanvas');
+        const ctx = cvs.getContext('2d');
+        const msg = document.getElementById('loading-msg');
+        const cursorIndicator = document.getElementById('cursor-indicator');
+        const widthSlider = document.getElementById('line-width-slider');
+        const stickerSlider = document.getElementById('sticker-size-slider');
+        
+        const selSido = document.getElementById('sido-select');
+        const selSigg = document.getElementById('sigungu-select');
 
-        function openLayoutModal() {
-            document.getElementById('layout-modal').classList.remove('hidden');
+        window.onload = () => {
+            document.getElementById('help-modal').style.display = 'flex';
+            initDropdowns();
+            renderIcons(); // 최초 로딩 시 스티커 표시 보장
+            checkCustomMap();
+        };
+
+        function initDropdowns() {
+            for (let s in regionData) selSido.add(new Option(s, s));
+            selSido.onchange = () => {
+                selSigg.innerHTML = '<option value="">시/군/구 선택</option>';
+                if(!selSido.value) return;
+                regionData[selSido.value].forEach(g => selSigg.add(new Option(g, g)));
+                if (selSido.value === "세종특별자치시") { selSigg.value = "-"; selSigg.dispatchEvent(new Event('change')); }
+                renderIcons(); // 지역 변경 시 스티커 이름(행정구역) 업데이트
+            };
+            selSigg.onchange = () => { loadMap(); renderIcons(); };
         }
 
-        function selectLayout(type) {
-            document.getElementById('layout-modal').classList.add('hidden');
-            const wrapper = document.getElementById('layout-wrapper');
-            wrapper.className = `layout-container layout-${type}`;
-
-            if(type === 1) {
-                wrapper.innerHTML = `
-                    <div class="top-area">이곳에 지도를 그리거나 스티커를 붙여보세요! (펜을 선택하세요)</div>
-                    <div class="bottom-area"><textarea class="text-box chat-target" placeholder="여기에 배운 내용을 줄글로 정리해 보세요."></textarea></div>
-                `;
-            } else if(type === 2) {
-                wrapper.innerHTML = `
-                    <div class="left-area"><textarea class="text-box chat-target" placeholder="오늘 알게 된 핵심 설명을 여기에 적어보세요."></textarea></div>
-                    <div class="right-area">이곳에 지형이나<br>기호를 그려보세요.</div>
-                `;
-            } else if(type === 3) {
-                wrapper.innerHTML = `
-                    <div class="left-cue"><textarea class="text-box" placeholder="핵심 단어 / 질문"></textarea></div>
-                    <div class="right-note"><textarea class="text-box chat-target" placeholder="상세 필기 및 그리기 영역"></textarea></div>
-                    <div class="bottom-summary"><textarea class="text-box" placeholder="오늘 배운 내용 세 줄 요약!"></textarea></div>
-                `;
-            }
-
-            setTimeout(initCanvas, 100);
-            setNotebookMode('text');
-        }
-
-        function importChatHistory() {
-            const histStr = sessionStorage.getItem('mapbotHistory');
-            if(!histStr) { alert("아직 맵봇과 나눈 대화 기록이 없어요."); return; }
-            
-            const historyObj = JSON.parse(histStr);
-            if(historyObj.length <= 1) { alert("아직 맵봇과 나눈 대화가 없어요."); return; }
-            
-            const targetBox = document.querySelector('.chat-target');
-            if(targetBox) {
-                const historyText = historyObj.slice(1).map(c => `[${c.role === 'user' ? '나' : '🤖 맵봇'}]\n${c.text}`).join('\n\n');
-                targetBox.value += (targetBox.value ? '\n\n---\n\n' : '') + historyText;
-                alert("대화 내용이 공책에 쏙 들어왔습니다! 필요한 부분만 예쁘게 수정해보세요.");
+        function checkCustomMap() {
+            const customData = sessionStorage.getItem('customMap');
+            if (customData) {
+                mapSourceMode = 'custom';
+                document.getElementById('sido-select').style.display = 'none';
+                document.getElementById('sigungu-select').style.display = 'none';
+                document.getElementById('base-map-toggle-wrapper').style.display = 'none';
+                document.getElementById('custom-badge').style.display = 'inline-block';
+                
+                msg.style.display = 'block';
+                mapImg = new Image();
+                mapImg.onload = () => {
+                    msg.style.display = 'none';
+                    isNationalMap = false;
+                    showBaseMap = false;
+                    setupCanvasDimensions(mapImg.naturalWidth, mapImg.naturalHeight);
+                };
+                mapImg.src = customData;
             } else {
-                alert("글쓰기 영역이 있는 양식을 먼저 선택해주세요.");
+                loadNationalPreset();
             }
         }
 
-        function initCanvas() {
-            const container = document.getElementById('notebook-canvas-container');
-            let oldData = null;
-            if (cvs.width > 0 && cvs.height > 0 && historyStep > -1) {
-                oldData = ctx.getImageData(0,0,cvs.width,cvs.height);
-            }
-            cvs.width = container.clientWidth;
-            cvs.height = container.clientHeight;
-            
-            if(oldData) {
-                ctx.putImageData(oldData, 0, 0);
-            } else {
-                saveHistory(); // 첫 캔버스 세팅 시 히스토리 기록
-            }
+        function loadNationalPreset() {
+            nationalImg = new Image();
+            nationalImg.crossOrigin = "Anonymous";
+            nationalImg.onload = () => {
+                isNationalMap = true;
+                showBaseMap = true;
+                setupCanvasDimensions(nationalImg.naturalWidth, nationalImg.naturalHeight);
+            };
+            nationalImg.src = "https://kimteacher1.github.io/korea-map-layer/남한전도-지형-.png";
         }
 
-        window.addEventListener('resize', () => { 
-            if(document.getElementById('layout-modal').classList.contains('hidden')) initCanvas(); 
-        });
-
-        // 툴바 셋팅 (색상 비활성화, 사이즈 자동 변경 포함)
-        function setNotebookMode(mode) {
-            curNbMode = mode;
-            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-            if(document.getElementById('tool-' + mode)) document.getElementById('tool-' + mode).classList.add('active');
-
-            const colorPicker = document.getElementById('draw-color');
-            const sizeSlider = document.getElementById('draw-size');
-            const sizeLabel = document.getElementById('size-label');
-
-            if(mode === 'text') {
-                cvs.classList.remove('active');
-                cursorIndicator.style.display = 'none';
-            } else {
-                cvs.classList.add('active');
-                if(mode === 'draw') {
-                    ctx.globalCompositeOperation = 'source-over';
-                    colorPicker.disabled = false;
-                    colorPicker.style.opacity = '1';
-                    colorPicker.value = state.pen.color;
-                    sizeSlider.value = state.pen.size;
-                    sizeLabel.innerText = '펜 굵기';
-                } else if(mode === 'highlighter') {
-                    ctx.globalCompositeOperation = 'source-over';
-                    colorPicker.disabled = false;
-                    colorPicker.style.opacity = '1';
-                    colorPicker.value = state.highlighter.color;
-                    sizeSlider.value = state.highlighter.size;
-                    sizeLabel.innerText = '형광펜 굵기';
-                } else if(mode === 'erase') {
-                    ctx.globalCompositeOperation = 'destination-out';
-                    // 지우개 선택 시 색상 팔레트 비활성화
-                    colorPicker.disabled = true;
-                    colorPicker.style.opacity = '0.3';
-                    sizeSlider.value = state.erase.size;
-                    sizeLabel.innerText = '지우개 크기';
-                }
-            }
-            if (lastMouseEvent) updateCursor(lastMouseEvent);
+        function setupCanvasDimensions(w, h) {
+            baseImgW = w || 1000;
+            baseImgH = h || 1000;
+            drawCanvas.width = tempCanvas.width = baseImgW;
+            drawCanvas.height = tempCanvas.height = baseImgH;
+            
+            // 초기화
+            drawCtx.clearRect(0,0,baseImgW, baseImgH);
+            stickers = [];
+            historyStack = [];
+            stickerHistoryStack = [];
+            historyStep = -1;
+            lastPoint = null;
+            
+            saveHistory();
+            resetZoomControl();
+            resize();
         }
 
-        function updateSizeState() {
-            const val = document.getElementById('draw-size').value;
-            if(curNbMode === 'draw') state.pen.size = val;
-            else if(curNbMode === 'highlighter') state.highlighter.size = val;
-            else if(curNbMode === 'erase') state.erase.size = val;
-            
-            if (lastMouseEvent) updateCursor(lastMouseEvent);
-        }
-
-        function updateColorState() {
-            const val = document.getElementById('draw-color').value;
-            if(curNbMode === 'draw') state.pen.color = val;
-            else if(curNbMode === 'highlighter') state.highlighter.color = val;
-            
-            if (lastMouseEvent) updateCursor(lastMouseEvent);
-        }
-
-        // 지우개(및 펜) 커서 표시 로직
-        function updateCursor(e) {
-            if (curNbMode === 'text') {
-                cursorIndicator.style.display = 'none';
-                return;
-            }
-            
-            cursorIndicator.style.display = 'block';
-            cursorIndicator.style.left = e.clientX + 'px';
-            cursorIndicator.style.top = e.clientY + 'px';
-            
-            const size = document.getElementById('draw-size').value;
-            cursorIndicator.style.width = size + 'px';
-            cursorIndicator.style.height = size + 'px';
-            
-            if (curNbMode === 'erase') {
-                cursorIndicator.style.borderColor = '#000000';
-                cursorIndicator.style.background = 'rgba(255, 255, 255, 0.7)';
-            } else if (curNbMode === 'highlighter') {
-                cursorIndicator.style.borderColor = state.highlighter.color;
-                cursorIndicator.style.background = state.highlighter.color + '66'; // 반투명
-            } else {
-                cursorIndicator.style.borderColor = state.pen.color;
-                cursorIndicator.style.background = 'transparent';
-            }
-        }
-
-        // 히스토리 관리 (실행 취소/복구)
         function saveHistory() {
             historyStack = historyStack.slice(0, historyStep + 1);
-            historyStack.push(ctx.getImageData(0, 0, cvs.width, cvs.height));
+            historyStack.push(drawCtx.getImageData(0, 0, baseImgW, baseImgH));
+            
+            stickerHistoryStack = stickerHistoryStack.slice(0, historyStep + 1);
+            stickerHistoryStack.push(JSON.parse(JSON.stringify(stickers)));
+            
             historyStep++;
-            updateHistoryButtons();
+            updateHistoryBtns();
         }
 
         function undo() {
-            if(historyStep > 0) {
+            if (historyStep > 0) {
                 historyStep--;
-                ctx.putImageData(historyStack[historyStep], 0, 0);
-                updateHistoryButtons();
+                drawCtx.putImageData(historyStack[historyStep], 0, 0);
+                stickers = JSON.parse(JSON.stringify(stickerHistoryStack[historyStep]));
+                lastPoint = null; // 실행 취소 시 점 끊기
+                redraw();
+                updateHistoryBtns();
             }
         }
 
         function redo() {
-            if(historyStep < historyStack.length - 1) {
+            if (historyStep < historyStack.length - 1) {
                 historyStep++;
-                ctx.putImageData(historyStack[historyStep], 0, 0);
-                updateHistoryButtons();
+                drawCtx.putImageData(historyStack[historyStep], 0, 0);
+                stickers = JSON.parse(JSON.stringify(stickerHistoryStack[historyStep]));
+                lastPoint = null;
+                redraw();
+                updateHistoryBtns();
             }
         }
 
-        function updateHistoryButtons() {
+        function clearAll() { 
+            if(confirm("모든 펜 자국과 임시 점들을 싹 지울까요? (스티커는 남습니다)")) {
+                drawCtx.clearRect(0, 0, baseImgW, baseImgH);
+                lastPoint = null; // 임시 점도 초기화
+                saveHistory();
+                redraw();
+            }
+        }
+
+        function updateHistoryBtns() {
             document.getElementById('btn-undo').style.opacity = historyStep > 0 ? "1" : "0.4";
             document.getElementById('btn-redo').style.opacity = historyStep < historyStack.length - 1 ? "1" : "0.4";
         }
 
-        function clearCanvas() {
-            if(confirm("그린 그림을 모두 지울까요? (글씨는 남습니다)")) {
-                ctx.clearRect(0, 0, cvs.width, cvs.height);
-                saveHistory();
+        function setCategoryFilter(cat) {
+            currentCat = cat;
+            document.querySelectorAll('.cat-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-cat-' + cat).classList.add('active');
+            curIcon = null; 
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+            renderIcons();
+        }
+
+        function renderIcons() {
+            const box = document.getElementById('sticker-container');
+            let sd = selSido.value;
+            let sgg = selSigg.value;
+            
+            box.innerHTML = '';
+            const filtered = iconPack.filter(i => currentCat === 'all' || i.c === currentCat);
+            filtered.forEach(i => {
+                let text = i.t;
+                // 행정구역 이름 자동 변환 마법
+                if (i.t === "시/도청" && sd) {
+                    text = sd + "청";
+                    if(sd === "전남광주통합특별시") text = "전남광주통합특별시청";
+                }
+                if (i.t === "시/군/구청") {
+                    if (!sgg || sgg === "-") return; // 선택 안 했으면 숨김
+                    text = sgg + "청";
+                }
+
+                const d = document.createElement('div'); d.className = 'sticker-item';
+                d.innerHTML = `<div class="sticker-emoji">${i.e}</div><div>${text}</div>`;
+                d.onclick = () => {
+                    setTool('icon'); // 도구 변경 시 점찍어 잇기 자동 취소
+                    curIcon = { e: i.e, t: text };
+                    document.querySelectorAll('.sticker-item').forEach(b => b.classList.remove('selected'));
+                    d.classList.add('selected');
+                };
+                box.appendChild(d);
+            });
+        }
+
+        function setTextMode(val) {
+            showText = val;
+            document.getElementById('toggle-show').classList.toggle('active', val);
+            document.getElementById('toggle-hide').classList.toggle('active', !val);
+            redraw();
+        }
+
+        function setBaseMapMode(val) {
+            if (val && !isNationalMap) {
+                if (confirm("다시 처음 지형도 그림으로 돌아가게 만들어주고, 그 때 입력한 데이터는 사라집니다. 그래도 지형도 화면으로 돌아갈까요?")) {
+                    isNationalMap = true; showBaseMap = true;
+                    document.getElementById('sido-select').value = "";
+                    document.getElementById('sigungu-select').innerHTML = '<option value="">시/군/구 선택</option>';
+                    document.getElementById('toggle-map-show').classList.add('active');
+                    document.getElementById('toggle-map-hide').classList.remove('active');
+                    setupCanvasDimensions(nationalImg.naturalWidth, nationalImg.naturalHeight);
+                } else { return; }
+            } else {
+                showBaseMap = val;
+                document.getElementById('toggle-map-show').classList.toggle('active', val);
+                document.getElementById('toggle-map-hide').classList.toggle('active', !val);
+                redraw();
             }
         }
 
-        function getMousePos(e) {
-            const rect = cvs.getBoundingClientRect();
-            return {
-                x: (e.clientX || e.touches[0].clientX) - rect.left,
-                y: (e.clientY || e.touches[0].clientY) - rect.top
-            };
+        function setTool(t) {
+            curTool = t; curIcon = null;
+            
+            // --- 유저 요청 사항 반영: 다른 도구 클릭 시 점 찍어 잇기 모드 종료 & 펜으로 쓱쓱으로 복귀 ---
+            if (lastPoint !== null) {
+                lastPoint = null; // 연결 중이던 선 초기화
+                showToast("✂️ 도구가 변경되어 선 잇기가 종료되었습니다.");
+            }
+            if (drawMode === 'point' && t !== 'icon') {
+                setDrawMode('free'); // '펜으로 쓱쓱' 모드로 자동 전환
+            }
+            // -------------------------------------------------------------------------
+
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('selected'));
+            if(document.getElementById('tool-' + t)) {
+                document.getElementById('tool-' + t).classList.add('selected');
+            }
+            document.querySelectorAll('.sticker-item').forEach(b => b.classList.remove('selected'));
+            
+            if (t === 'pan') {
+                cvs.style.cursor = 'grab';
+                cursorIndicator.style.display = 'none';
+            } else if (t === 'icon') {
+                cvs.style.cursor = 'crosshair';
+                cursorIndicator.style.display = 'none';
+            } else {
+                cvs.style.cursor = 'none'; // 커서 인디케이터 사용
+            }
+            if(lastMouseEvent) updateCursorPos(lastMouseEvent);
         }
 
-        // 마우스 및 터치 이벤트
-        cvs.addEventListener('mousemove', (e) => {
+        function setDrawMode(m) {
+            drawMode = m; lastPoint = null;
+            document.getElementById('mode-free').classList.remove('selected');
+            document.getElementById('mode-point').classList.remove('selected');
+            document.getElementById('mode-' + m).classList.add('selected');
+        }
+
+        function loadMap() {
+            if (mapSourceMode === 'custom') return;
+            const sd = selSido.value; const sgg = selSigg.value;
+            if (!sd || !sgg) return;
+
+            isNationalMap = false;
+            showBaseMap = false;
+            document.getElementById('toggle-map-show').classList.remove('active');
+            document.getElementById('toggle-map-hide').classList.add('active');
+
+            msg.style.display = 'block'; renderIcons();
+            
+            let fetchSd = sd;
+            let fetchSgg = sgg;
+
+            if (sd === "전남광주통합특별시") {
+                const gwangjuSigungu = ["동구", "서구", "남구", "북구", "광산구"];
+                fetchSd = gwangjuSigungu.includes(sgg) ? "광주광역시" : "전라남도";
+            } else if (sd === "인천광역시") {
+                if (sgg === "영종구") fetchSgg = "중구";
+                if (sgg === "제물포구") fetchSgg = "동구";
+                if (sgg === "서해구" || sgg === "검단구") fetchSgg = "서구";
+            }
+
+            let url1 = "", url2 = "";
+            if (fetchSd === "세종특별자치시") { url1 = `${GITHUB_BASE_URL}세종특별자치시-.jpg`; } 
+            else { url1 = `${GITHUB_BASE_URL}${fetchSd}-${fetchSgg}.jpg`; url2 = `${GITHUB_BASE_URL}${fetchSd}-${fetchSgg}-.jpg`; }
+
+            const img = new Image(); img.crossOrigin = "Anonymous";
+            img.onload = () => { 
+                mapImg = img; msg.style.display = 'none'; 
+                setupCanvasDimensions(img.naturalWidth, img.naturalHeight);
+            };
+            img.onerror = () => {
+                if (url2 && img.src !== url2) img.src = url2; 
+                else { 
+                    mapImg = null; msg.style.display = 'none'; 
+                    setupCanvasDimensions(1000, 1000);
+                    alert("⚠️ 지도를 찾을 수 없어요! 파일 이름을 다시 확인해 주세요."); 
+                }
+            };
+            img.src = url1;
+        }
+
+        function resize() {
+            cvs.width = cvs.parentElement.clientWidth; cvs.height = cvs.parentElement.clientHeight;
+            
+            // imgRect는 화면 비율에 맞춘 최초 스케일 베이스
+            const s = Math.min(cvs.width / baseImgW, cvs.height / baseImgH) * 0.95; 
+            imgRect.w = baseImgW * s; 
+            imgRect.h = baseImgH * s;
+            imgRect.x = (cvs.width - imgRect.w) / 2; 
+            imgRect.y = (cvs.height - imgRect.h) / 2;
+            
+            redraw();
+        }
+        window.addEventListener('resize', resize);
+
+        function zoomView(factor) {
+            const newScale = Math.min(Math.max(0.5, scale * factor), 6);
+            const cx = cvs.width / 2; const cy = cvs.height / 2;
+            panX = cx - (cx - panX) * (newScale / scale);
+            panY = cy - (cy - panY) * (newScale / scale);
+            scale = newScale; redraw();
+        }
+
+        function resetZoomControl() { scale = 1; panX = 0; panY = 0; redraw(); }
+
+        cvs.addEventListener('wheel', e => {
+            e.preventDefault();
+            const factor = e.deltaY < 0 ? 1.1 : 0.9;
+            const mx = e.clientX - cvs.getBoundingClientRect().left;
+            const my = e.clientY - cvs.getBoundingClientRect().top;
+            const newScale = Math.min(Math.max(0.5, scale * factor), 6);
+            panX = mx - (mx - panX) * (newScale / scale);
+            panY = my - (my - panY) * (newScale / scale);
+            scale = newScale; redraw();
+        });
+
+        // 마우스 좌표를 drawCanvas 원본 픽셀 좌표로 변환
+        function getPt(evt) {
+            const rect = cvs.getBoundingClientRect();
+            const clientX = evt.clientX || (evt.touches && evt.touches[0] ? evt.touches[0].clientX : 0);
+            const clientY = evt.clientY || (evt.touches && evt.touches[0] ? evt.touches[0].clientY : 0);
+            
+            const cx = clientX - rect.left; 
+            const cy = clientY - rect.top;
+            
+            const originalX = (cx - panX) / scale; 
+            const originalY = (cy - panY) / scale;
+            
+            const ratioW = imgRect.w / baseImgW;
+            const ratioH = imgRect.h / baseImgH;
+            
+            const px = (originalX - imgRect.x) / ratioW;
+            const py = (originalY - imgRect.y) / ratioH;
+            
+            return { x: px, y: py };
+        }
+        
+        // 스티커 등 원본 좌표를 화면 픽셀로 변환
+        function absPt(pt) { 
+            const ratioW = imgRect.w / baseImgW;
+            const ratioH = imgRect.h / baseImgH;
+            return { 
+                x: (pt.x * ratioW) + imgRect.x, 
+                y: (pt.y * ratioH) + imgRect.y 
+            }; 
+        }
+
+        // 도구별 기본 굵기 및 색상 설정
+        function getBaseWidth(tool) {
+            if(tool === 'road') return 12;
+            if(tool === 'rail') return 10;
+            if(tool === 'river') return 26;
+            if(tool === 'highlighter') return 25;
+            if(tool === 'eraser') return 30;
+            return 10;
+        }
+
+        function showToast(text) {
+            const toast = document.getElementById('toast-msg');
+            toast.innerText = text;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2500);
+        }
+
+        // --- 부드러운 곡선(Smooth Curve) 드로잉 엔진 ---
+        function drawSmoothPath(context, pts, type, w) {
+            if(pts.length === 0) return;
+            context.beginPath();
+            context.moveTo(pts[0].x, pts[0].y);
+            
+            // 점이 1개면 점을 찍음
+            if(pts.length === 1) {
+                context.lineTo(pts[0].x + 0.1, pts[0].y);
+            } else if (pts.length === 2) {
+                context.lineTo(pts[1].x, pts[1].y);
+            } else {
+                for (let i = 1; i < pts.length - 2; i++) {
+                    let xc = (pts[i].x + pts[i + 1].x) / 2;
+                    let yc = (pts[i].y + pts[i + 1].y) / 2;
+                    context.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+                }
+                context.quadraticCurveTo(pts[pts.length - 2].x, pts[pts.length - 2].y, pts[pts.length - 1].x, pts[pts.length - 1].y);
+            }
+
+            if (type === 'road') {
+                context.strokeStyle = "#95A5A6"; context.lineWidth = 12 * w; context.lineCap = "round"; context.lineJoin = "round";
+                context.setLineDash([]); context.stroke();
+                context.strokeStyle = "#F4D03F"; context.lineWidth = 3 * w; context.setLineDash([14 * w, 14 * w]); context.stroke();
+            } else if (type === 'rail') {
+                context.strokeStyle = "#34495E"; context.lineWidth = 10 * w; context.lineCap = "butt"; context.lineJoin = "miter";
+                context.setLineDash([]); context.stroke();
+                context.strokeStyle = "white"; context.lineWidth = 8 * w; context.setLineDash([6 * w, 12 * w]); context.stroke();
+            } else if (type === 'river') {
+                context.strokeStyle = "#2980B9"; context.lineWidth = 26 * w; context.lineCap = "round"; context.lineJoin = "round";
+                context.setLineDash([]); context.stroke();
+                context.strokeStyle = "#74B9FF"; context.lineWidth = 18 * w; context.setLineDash([]); context.stroke();
+            } else if (type === 'highlighter') {
+                context.strokeStyle = "#FF9F43"; context.lineWidth = 25 * w; context.lineCap = "round"; context.lineJoin = "round";
+                context.setLineDash([]); context.stroke();
+            } else if (type === 'eraser') {
+                context.strokeStyle = "rgba(0,0,0,1)"; context.lineWidth = 30 * w; context.lineCap = "round"; context.lineJoin = "round";
+                context.setLineDash([]); context.stroke();
+            }
+            context.setLineDash([]);
+        }
+
+        // --- 마우스 커서 표시기 업데이트 ---
+        function updateCursorPos(e) {
+            if(!e) return;
+            if(curTool === 'pan' || curTool === 'icon') {
+                cursorIndicator.style.display = 'none'; return;
+            }
+            cursorIndicator.style.display = 'block';
+            cursorIndicator.style.left = e.clientX + 'px';
+            cursorIndicator.style.top = e.clientY + 'px';
+            
+            const w = parseFloat(widthSlider.value);
+            const ratioW = imgRect.w / baseImgW;
+            const actualPxSize = getBaseWidth(curTool) * w * ratioW * scale;
+            
+            cursorIndicator.style.width = actualPxSize + 'px';
+            cursorIndicator.style.height = actualPxSize + 'px';
+
+            if(curTool === 'eraser') {
+                cursorIndicator.style.borderColor = '#000000';
+                cursorIndicator.style.background = 'rgba(255,255,255,0.7)';
+            } else if(curTool === 'highlighter') {
+                cursorIndicator.style.borderColor = '#FF9F43';
+                cursorIndicator.style.background = 'rgba(255, 159, 67, 0.4)';
+            } else if(curTool === 'river') {
+                cursorIndicator.style.borderColor = '#2980B9';
+                cursorIndicator.style.background = 'transparent';
+            } else {
+                cursorIndicator.style.borderColor = '#34495E';
+                cursorIndicator.style.background = 'transparent';
+            }
+        }
+
+        cvs.addEventListener('pointermove', e => {
             lastMouseEvent = e;
             const rect = cvs.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            
             if(e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                updateCursor(e);
+                updateCursorPos(e);
             } else {
                 cursorIndicator.style.display = 'none';
             }
 
-            if(!isDrawing) return;
-            e.preventDefault();
-            const pos = getMousePos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            
-            ctx.lineWidth = document.getElementById('draw-size').value;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            if(curNbMode === 'erase') {
-                ctx.strokeStyle = 'rgba(0,0,0,1)';
-                ctx.globalAlpha = 1.0;
-            } else if (curNbMode === 'highlighter') {
-                ctx.strokeStyle = state.highlighter.color;
-                ctx.globalAlpha = 0.4;
-            } else {
-                ctx.strokeStyle = state.pen.color;
-                ctx.globalAlpha = 1.0;
+            if (isPanning && curTool === 'pan') {
+                panX = e.clientX - startX; panY = e.clientY - startY; redraw(); return;
             }
+
+            if (draggingStickerIdx !== -1) {
+                e.preventDefault(); stickerMoved = true;
+                const p = getPt(e);
+                if (p) { stickers[draggingStickerIdx].realX = p.x; stickers[draggingStickerIdx].realY = p.y; redraw(); }
+                return;
+            }
+
+            // 스티커 Hover 감지
+            let found = -1;
+            const ss = parseFloat(stickerSlider.value) || 1;
+            for (let i = stickers.length - 1; i >= 0; i--) {
+                const ap = absPt({x: stickers[i].realX, y: stickers[i].realY});
+                const screenX = ap.x * scale + panX;
+                const screenY = ap.y * scale + panY;
+                if (Math.hypot(mx - screenX, my - screenY) < (35 * ss)) { found = i; break; }
+            }
+            if (hoverIdx !== found) { hoverIdx = found; redraw(); }
             
-            ctx.stroke();
-            lastX = pos.x; lastY = pos.y;
+            // 드로잉 중
+            if (isDrawing && drawMode === 'free') {
+                const p = getPt(e); 
+                if (p) { 
+                    strokePoints.push(p); 
+                    if(curTool === 'eraser') {
+                        // 진짜 지우개: drawCanvas 픽셀을 직접 지움
+                        drawCtx.globalCompositeOperation = 'destination-out';
+                        drawSmoothPath(drawCtx, [strokePoints[strokePoints.length-2], strokePoints[strokePoints.length-1]], 'eraser', parseFloat(widthSlider.value));
+                        drawCtx.globalCompositeOperation = 'source-over';
+                    } else {
+                        // 그리기: tempCanvas에 먼저 그림
+                        tempCtx.clearRect(0,0,baseImgW, baseImgH);
+                        drawSmoothPath(tempCtx, strokePoints, curTool, parseFloat(widthSlider.value));
+                    }
+                    redraw(); 
+                }
+            }
         });
 
-        cvs.addEventListener('mouseleave', () => {
-            cursorIndicator.style.display = 'none';
-            if(isDrawing) {
-                isDrawing = false;
-                saveHistory();
+        cvs.addEventListener('pointerdown', e => {
+            const rect = cvs.getBoundingClientRect();
+            const clkX = e.clientX - rect.left, clkY = e.clientY - rect.top;
+            
+            if (curTool === 'pan') {
+                isPanning = true; cvs.style.cursor = 'grabbing';
+                startX = e.clientX - panX; startY = e.clientY - panY; return;
             }
-        });
 
-        const startDraw = (e) => {
-            if(curNbMode === 'text') return;
-            isDrawing = true;
-            const pos = getMousePos(e);
-            lastX = pos.x; lastY = pos.y;
-        };
-
-        const stopDraw = () => { 
-            if(isDrawing) {
-                isDrawing = false; 
-                saveHistory();
-            }
-        };
-
-        cvs.addEventListener('mousedown', startDraw);
-        window.addEventListener('mouseup', stopDraw);
-        
-        // 터치 기기에서는 커서 숨김
-        cvs.addEventListener('touchstart', (e) => {
-            cursorIndicator.style.display = 'none';
-            startDraw(e);
-        }, {passive: false});
-        cvs.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            cursorIndicator.style.display = 'none';
-            
-            if(!isDrawing) return;
-            const pos = getMousePos(e);
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(pos.x, pos.y);
-            
-            ctx.lineWidth = document.getElementById('draw-size').value;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            
-            if(curNbMode === 'erase') {
-                ctx.strokeStyle = 'rgba(0,0,0,1)';
-                ctx.globalAlpha = 1.0;
-            } else if (curNbMode === 'highlighter') {
-                ctx.strokeStyle = state.highlighter.color;
-                ctx.globalAlpha = 0.4;
-            } else {
-                ctx.strokeStyle = state.pen.color;
-                ctx.globalAlpha = 1.0;
-            }
-            
-            ctx.stroke();
-            lastX = pos.x; lastY = pos.y;
-        }, {passive: false});
-        window.addEventListener('touchend', stopDraw);
-
-        function saveNotebook() {
-            // 스크린샷 깔끔하게 찍기 위한 처리
-            document.querySelectorAll('.text-box').forEach(tb => {
-                tb.style.border = 'none';
-                tb.style.background = 'transparent';
-            });
-            document.querySelector('.nb-topic input').style.border = 'none';
-            cvs.classList.remove('active'); 
-            cursorIndicator.style.display = 'none'; // 커서 숨기기
-
-            const element = document.getElementById('notebook-canvas-container');
-            html2canvas(element, { backgroundColor: '#FAFAFA', scale: 2 }).then(canvas => {
-                const url = canvas.toDataURL("image/jpeg", 0.95);
+            const ss = parseFloat(stickerSlider.value) || 1;
+            for (let i = stickers.length - 1; i >= 0; i--) {
+                const ap = absPt({x: stickers[i].realX, y: stickers[i].realY});
+                const screenX = ap.x * scale + panX;
+                const screenY = ap.y * scale + panY;
                 
-                // 원상복구
-                document.querySelectorAll('.text-box').forEach(tb => { tb.style.border = '2px dashed #BDC3C7'; });
-                document.querySelector('.nb-topic input').style.borderBottom = '2px dashed #5DADE2';
-                setNotebookMode(curNbMode);
+                if (hoverIdx === i && Math.hypot(clkX - (screenX+(18*ss)), clkY - (screenY-(18*ss))) < (30*ss)) {
+                    stickers.splice(i, 1); hoverIdx = -1; saveHistory(); redraw(); return; 
+                }
+                if (Math.hypot(clkX - screenX, clkY - screenY) < (25*ss)) {
+                    draggingStickerIdx = i; stickerMoved = false; return; 
+                }
+            }
+            
+            const p = getPt(e); if (!p) return;
+            
+            if (curTool === 'icon' && curIcon) {
+                stickers.push({ e: curIcon.e, t: curIcon.t, realX: p.x, realY: p.y }); saveHistory(); redraw();
+            } else if (['road','rail','river','highlighter','eraser'].includes(curTool)) {
+                if (drawMode === 'free') { 
+                    isDrawing = true; strokePoints = [p]; saveHistory();
+                } 
+                else {
+                    // 점 찍어 잇기 모드
+                    saveHistory();
+                    const w = parseFloat(widthSlider.value);
+                    if (!lastPoint) {
+                        lastPoint = p;
+                        // 시작점 동그라미 표시 (B안 수정)
+                        drawCtx.beginPath();
+                        drawCtx.arc(p.x, p.y, getBaseWidth(curTool) * w / 3, 0, Math.PI * 2);
+                        if(curTool === 'road') drawCtx.fillStyle = "#95A5A6";
+                        else if(curTool === 'rail') drawCtx.fillStyle = "#34495E";
+                        else if(curTool === 'river') drawCtx.fillStyle = "#2980B9";
+                        else if(curTool === 'highlighter') drawCtx.fillStyle = "rgba(255,159,67,0.4)";
+                        else if(curTool === 'eraser') {
+                            drawCtx.globalCompositeOperation = 'destination-out';
+                            drawCtx.fillStyle = "rgba(0,0,0,1)";
+                        }
+                        drawCtx.fill();
+                        drawCtx.globalCompositeOperation = 'source-over';
+                    } else {
+                        // 선 완성 및 연결
+                        if(curTool === 'eraser') drawCtx.globalCompositeOperation = 'destination-out';
+                        if(curTool === 'highlighter') drawCtx.globalAlpha = 0.4;
+                        
+                        drawSmoothPath(drawCtx, [lastPoint, p], curTool, w);
+                        
+                        drawCtx.globalAlpha = 1.0;
+                        drawCtx.globalCompositeOperation = 'source-over';
+                        lastPoint = p;
+                    }
+                    redraw();
+                }
+            }
+        });
 
-                if(window.parent && window.parent.handleMapSave) {
-                    window.parent.handleMapSave(url, "배움 공책");
-                } else {
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `스마트_배움공책.jpg`;
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        window.addEventListener('pointerup', () => {
+            if (isPanning) { isPanning = false; cvs.style.cursor = 'grab'; }
+            if (isDrawing && drawMode === 'free') {
+                isDrawing = false; 
+                if(curTool !== 'eraser') {
+                    // 완성된 선을 본 캔버스로 복사 (형광펜 반투명 처리)
+                    if(curTool === 'highlighter') drawCtx.globalAlpha = 0.4;
+                    drawCtx.drawImage(tempCanvas, 0, 0);
+                    drawCtx.globalAlpha = 1.0;
+                    tempCtx.clearRect(0,0,baseImgW, baseImgH);
+                }
+                strokePoints = []; 
+                redraw();
+            }
+            if (draggingStickerIdx !== -1) {
+                if (!stickerMoved) {
+                    const s = stickers[draggingStickerIdx];
+                    const newName = prompt("이 장소의 새로운 이름을 입력하세요:", s.t);
+                    if (newName !== null && newName.trim() !== "") { s.t = newName.trim(); }
+                }
+                draggingStickerIdx = -1; saveHistory(); redraw();
+            }
+        });
+
+        cvs.addEventListener('mouseleave', () => { cursorIndicator.style.display = 'none'; });
+
+        // 마우스 우클릭: 점찍기 선 끊기 (새로 시작)
+        cvs.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            if (drawMode === 'point' && lastPoint) { 
+                lastPoint = null; 
+                showToast("✂️ 선 잇기를 끊었습니다. 새로 시작하세요!");
+                redraw(); 
+            }
+        });
+
+        // 최종 렌더링 엔진
+        function redraw() {
+            ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, cvs.width, cvs.height);
+            
+            ctx.save();
+            ctx.translate(panX, panY); ctx.scale(scale, scale);
+            
+            let activeImg = isNationalMap ? nationalImg : mapImg;
+            if ((!isNationalMap && !mapImg) || (isNationalMap && !showBaseMap)) {
+                ctx.fillStyle = "#FFFFFF"; ctx.strokeStyle = "#E8E8E8"; ctx.lineWidth = 4;
+                ctx.beginPath(); ctx.roundRect(imgRect.x, imgRect.y, imgRect.w, imgRect.h, 24); 
+                ctx.fill(); ctx.stroke();
+            } else if (activeImg) {
+                ctx.drawImage(activeImg, imgRect.x, imgRect.y, imgRect.w, imgRect.h);
+            }
+
+            // 진짜 지우개가 적용된 드로잉 레이어 합성
+            ctx.drawImage(drawCanvas, imgRect.x, imgRect.y, imgRect.w, imgRect.h);
+            // 현재 그리고 있는 임시 선 합성
+            ctx.drawImage(tempCanvas, imgRect.x, imgRect.y, imgRect.w, imgRect.h);
+
+            // 점 찍어 잇기 중일 때 가이드 점 보여주기
+            if(drawMode === 'point' && lastPoint) {
+                const p = absPt(lastPoint);
+                ctx.beginPath(); ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
+                ctx.fillStyle = "#E74C3C"; ctx.fill();
+            }
+
+            // 스티커 합성 (크기 조절 포함)
+            const ss = parseFloat(stickerSlider.value) || 1;
+            stickers.forEach((s, i) => {
+                const p = absPt({x: s.realX, y: s.realY});
+                ctx.font = `${30 * ss}px sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(s.e, p.x, p.y);
+                
+                // 💡 수정된 부분: 범례 표시(showText) 여부와 상관없이 글씨는 무조건 나옵니다!
+                ctx.font = `bold ${15 * ss}px 'Jua'`; ctx.fillStyle = "#2c3e50"; 
+                ctx.strokeStyle = "white"; ctx.lineWidth = 4 * ss;
+                ctx.strokeText(s.t, p.x, p.y + (24 * ss)); ctx.fillText(s.t, p.x, p.y + (24 * ss));
+                
+                if (hoverIdx === i || draggingStickerIdx === i) {
+                    ctx.fillStyle = "#FF5E5E"; ctx.beginPath(); ctx.arc(p.x+(18*ss), p.y-(18*ss), 14*ss, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "white"; ctx.font = `bold ${14*ss}px sans-serif`; ctx.fillText("X", p.x+(18*ss), p.y-(17*ss));
                 }
             });
+
+            if (stickers.length > 0 && showText) drawLegend();
+            drawCompass();
+            ctx.restore();
+        }
+
+        function drawLegend() {
+            const u = []; stickers.forEach(s => { if(!u.find(x => x.t === s.t)) u.push(s); });
+            const w = 140, h = 45 + (u.length * 30), lx = imgRect.x + 20, ly = imgRect.y + 20;
+            ctx.fillStyle = "rgba(255,255,255,0.95)"; ctx.strokeStyle = "#D5D8DC"; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.roundRect(lx, ly, w, h, 15); ctx.fill(); ctx.stroke(); 
+            ctx.fillStyle = "#5DADE2"; ctx.font = "20px 'Jua'"; ctx.textAlign = "center"; ctx.fillText("🔍 범례", lx + w/2, ly + 25);
+            ctx.textAlign = "left"; ctx.fillStyle = "#4A4A4A";
+            u.forEach((sym, i) => {
+                ctx.font = "18px sans-serif"; ctx.fillText(sym.e, lx + 15, ly + 55 + (i * 30));
+                ctx.font = "16px 'Jua'"; ctx.fillText(sym.t, lx + 45, ly + 55 + (i * 30));
+            });
+        }
+
+        function drawCompass() {
+            const cx = imgRect.x + imgRect.w - 35, cy = imgRect.y + 40;
+            ctx.strokeStyle = "#7F8C8D"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.lineJoin = "round";
+            ctx.beginPath(); ctx.moveTo(cx, cy - 20); ctx.lineTo(cx, cy + 15); ctx.moveTo(cx - 15, cy + 2); ctx.lineTo(cx + 15, cy + 2); ctx.moveTo(cx - 15, cy + 2); ctx.lineTo(cx, cy - 20); ctx.stroke();
+            ctx.fillStyle = "#FF5E5E"; ctx.font = "20px 'Jua'"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("북", cx, cy - 30);
+        }
+
+        function handleAction(type) {
+            const tempScale = scale; const tempPanX = panX; const tempPanY = panY;
+            scale = 1; panX = 0; panY = 0; hoverIdx = -1; draggingStickerIdx = -1; lastPoint = null; redraw();
+
+            cvs.toBlob(blob => {
+                scale = tempScale; panX = tempPanX; panY = tempPanY; redraw();
+                
+                if (type === 'submit') {
+                    if (window.parent && window.parent.handleMapSave) {
+                        const reader = new FileReader(); reader.readAsDataURL(blob);
+                        reader.onloadend = function() { window.parent.handleMapSave(reader.result, "백지도 그리기"); }
+                    } else {
+                        alert("런처(메인화면)를 통해서 접속해야 제출이 가능합니다.");
+                    }
+                } else if (type === 'download') {
+                    const sgg = mapImg ? (selSigg.value === "-" ? "세종시" : selSigg.value) : "우리동네";
+                    const url = URL.createObjectURL(blob); 
+                    const a = document.createElement('a'); 
+                    a.href = url; a.download = `MAP_KIT_백지도_${sgg}.jpg`; 
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a); 
+                    URL.revokeObjectURL(url);
+                }
+            }, 'image/jpeg', 0.95);
         }
     </script>
 </body>
