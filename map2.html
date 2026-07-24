@@ -126,7 +126,7 @@
                 <div class="mode-btn active" id="mode-pan" onclick="setMode('pan')">✋ 화면 이동</div>
                 <div class="mode-btn" id="mode-stamp" onclick="setMode('stamp')">👆 스티커 찍기</div>
             </div>
-            <div class="toggle-btn active" id="toggle-text" onclick="toggleText()">✅ 기호 라벨 표시</div>
+            <div class="toggle-btn active" id="toggle-text" onclick="toggleText()">✅ 범 표시</div>
         </div>
     </header>
 
@@ -319,7 +319,7 @@
         }
 
         function clearStickers() { if(confirm("지도 위의 스티커를 모두 지울까요?")) { stickers = []; redraw(); } }
-        function toggleText() { showText = !showText; const btn = document.getElementById('toggle-text'); btn.classList.toggle('active', showText); btn.innerText = showText ? "✅ 기호 라벨 표시" : "❌ 라벨 숨김"; redraw(); }
+        function toggleText() { showText = !showText; const btn = document.getElementById('toggle-text'); btn.classList.toggle('active', showText); btn.innerText = showText ? "✅ 범례 표시" : "❌ 범례 숨김"; redraw(); }
 
         const cvs = document.getElementById('mapCanvas'); const ctx = cvs.getContext('2d');
         const msg = document.getElementById('loading-msg'); const viewport = document.getElementById('map-viewport');
