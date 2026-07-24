@@ -829,12 +829,18 @@
         }
 
         function handleAction(type) {
-            const tempScale = scale; const tempPanX = panX; const tempPanY = panY;
-            scale = 1; panX = 0; panY = 0; hoverIdx = -1; draggingSticker = null;
+            // 💡 수정된 부분: 캡처 시 화면의 배율(scale)과 위치(panX, panY)를 강제로 1과 0으로 바꾸던 코드를 삭제했습니다.
+            // 선택된 스티커 표시(빨간색 X 표시 등)만 화면에서 안 보이게 임시로 해제합니다.
+            const tempHoverIdx = hoverIdx; 
+            const tempDragging = draggingSticker;
+            hoverIdx = -1; draggingSticker = null; 
             redraw();
 
             cvs.toBlob(blob => {
-                scale = tempScale; panX = tempPanX; panY = tempPanY; redraw();
+                // 캡처가 끝나면 마우스 오버 상태를 원래대로 복구합니다.
+                hoverIdx = tempHoverIdx; 
+                draggingSticker = tempDragging; 
+                redraw();
                 
                 if (type === 'submit') {
                     if (window.parent && window.parent.handleMapSave) {
