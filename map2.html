@@ -792,8 +792,9 @@
                     ctx.strokeText(s.text, sx, sy); ctx.fillText(s.text, sx, sy);
                 } else {
                     ctx.font = `${45 * sScale}px sans-serif`; ctx.fillText(s.e, sx, sy);
-                    // 스티커 이름 상시 표시 (map6 스타일 적용)
-                    if (showText && s.t) {
+                    
+                    // 💡 수정된 부분: showText(범례 스위치)와 무관하게 이름은 항상 표시됩니다.
+                    if (s.t) {
                         ctx.font = `bold ${18 * sScale}px 'Jua'`; ctx.fillStyle = "#2C3E50";
                         ctx.strokeStyle = "white"; ctx.lineWidth = 5 * sScale;
                         ctx.strokeText(s.t, sx, sy + (35 * sScale)); ctx.fillText(s.t, sx, sy + (35 * sScale));
